@@ -1,81 +1,742 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh-CN">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>BiliClassic - 哔哩经典</title>
-<style type="text/css">
-body {
-    background-color: #F5F5F5;
-    font-family: '宋体', SimSun, serif;
-    text-align: center;
-    padding: 20px;
-    margin: 0;
-}
-.container {
-    max-width: 500px;
-    margin: 0 auto;
-    background-color: #FFFFFF;
-    border: 1px solid #E0E0E0;
-    padding: 20px;
-}
-h1 {
-    color: #FF6699;
-    font-size: 24px;
-    margin: 10px 0;
-}
-.version {
-    color: #999999;
-    font-size: 14px;
-    margin: 10px 0;
-}
-.desc {
-    color: #666666;
-    font-size: 14px;
-    line-height: 1.5;
-    text-align: left;
-    margin: 20px 0;
-}
-.download-btn {
-    display: block;
-    background-color: #FF6699;
-    color: #FFFFFF;
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 15px 20px;
-    margin: 20px 0;
-    text-decoration: none;
-}
-.note {
-    color: #999999;
-    font-size: 12px;
-    margin: 15px 0;
-}
-.footer {
-    color: #CCCCCC;
-    font-size: 11px;
-    margin-top: 20px;
-}
-</style>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>BiliClassic - 安卓2也要看B站！</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #888888;
+            font-family: "Helvetica Neue", Helvetica, "Microsoft YaHei", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQYV2NkYGBoYmBg+M8ABYxgKqSBpAwMDDNQEQwAERIAmdEQo/MAAAAASUVORK5CYII=');
+        }
+        .page-container {
+            overflow-x: hidden;
+            position: relative;
+            width: 100%;
+        }
+        .slider-wrapper {
+            display: flex;
+            width: 100%;
+            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            will-change: transform;
+        }
+        .page {
+            flex: 0 0 100%;
+            width: 100%;
+        }
+        /* 标题栏 - 深色金属质感 + 竖向拉丝效果 (垂直方向拉丝=水平条纹) */
+        .title-bar {
+            background: #2a2a2a;
+            background-image: repeating-linear-gradient(
+                90deg,
+                rgba(255,255,255,0.05) 0px,
+                rgba(255,255,255,0.05) 2px,
+                rgba(0,0,0,0.05) 2px,
+                rgba(0,0,0,0.05) 6px
+            ), linear-gradient(180deg, #3a3a3a 0%, #1f1f1f 100%);
+            border-bottom: 1px solid #0a0a0a;
+            border-top: 1px solid #555555;
+            padding: 0 8px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 4px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        /* 选项卡 - 银色/灰白文字，高亮金色 */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            padding: 6px 0 0 0;
+        }
+        .tab-item {
+            font-size: 17px;
+            font-weight: bold;
+            color: #dddddd;
+            text-shadow: 0 -1px 0 #000000;
+            padding: 10px 18px 8px 18px;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+            border: none;
+            font-family: inherit;
+            display: inline-block;
+            position: relative;
+            opacity: 0.85;
+        }
+        .tab-item:hover {
+            opacity: 1;
+            color: #ffffff;
+            background: rgba(80, 80, 80, 0.5);
+            border-radius: 8px 8px 0 0;
+            text-shadow: 0 0 3px rgba(255,140,0,0.5);
+        }
+        .tab-item.active {
+            opacity: 1;
+            color: #ffaa44;
+            text-shadow: 0 0 5px rgba(255,100,0,0.4), 0 -1px 0 #000000;
+            background: linear-gradient(0deg, rgba(50,50,50,0.6) 0%, rgba(80,80,80,0.2) 80%);
+            border-radius: 8px 8px 0 0;
+        }
+        /* 高亮条 - B站主题色渐变 */
+        .tab-highlight {
+            position: absolute;
+            bottom: 0px;
+            height: 3px;
+            background: #D86DA5;
+            background: linear-gradient(90deg, #E88DBD, #D86DA5, #C24E8A);
+            border-radius: 3px 3px 0 0;
+            transition: left 0.3s ease, width 0.3s ease;
+            box-shadow: 0 0 4px #D86DA5;
+            z-index: 2;
+        }
+        .container {
+            max-width: 800px;
+            margin: 16px auto;
+            padding: 0 16px;
+        }
+        /* 卡片拟物感 */
+        .card {
+            background: #f0f0f0;
+            background: linear-gradient(145deg, #f8f8f8 0%, #e8e8e8 100%);
+            border: 1px solid #aaaaaa;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        /* 卡片左上角B站主题色小色块装饰 - 也改为竖向金属渐变 */
+        .card:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 32px;
+            background: linear-gradient(180deg, #E88DBD, #D86DA5, #C24E8A);
+            border-radius: 4px 0 0 4px;
+            opacity: 0.7;
+        }
+        .card:hover {
+            background: linear-gradient(145deg, #e0e0e0 0%, #d0d0d0 100%);
+            border-color: #D86DA5;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 3px 8px rgba(0,0,0,0.4);
+            transform: translateY(-1px);
+        }
+        .card:hover:before {
+            opacity: 1;
+            width: 5px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #222222;
+            background: linear-gradient(180deg, #dddddd 0%, #cccccc 100%);
+            padding: 8px 10px;
+            margin: -12px -12px 12px -12px;
+            border-bottom: 1px solid #aaaaaa;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            text-shadow: 0 1px 0 #eeeeee;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+        }
+        .card:hover .card-title {
+            background: linear-gradient(180deg, #cecece 0%, #bcbcbc 100%);
+            border-bottom-color: #D86DA5;
+        }
+        .info-row {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333333;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #111111;
+            display: inline-block;
+            width: 85px;
+        }
+        /* 金属渐变拟物条 - 重拟物风格，B站主题色金属质感，从上到下金属渐变，无糖果感 */
+        .theme-banner {
+            background: linear-gradient(180deg, #D86DA5 0%, #c1558a 30%, #a33e6f 70%, #C24E8A 100%);
+            text-align: center;
+            padding: 14px 12px;
+            font-size: 17px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 1px 0 rgba(0,0,0,0.3);
+            margin-bottom: 16px;
+            border: 1px solid #8f3a63;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.25), 0 5px 8px rgba(0,0,0,0.3), inset 0 -2px 0 rgba(0,0,0,0.2);
+            letter-spacing: 1.5px;
+            cursor: default;
+            transition: all 0.1s ease;
+            position: relative;
+        }
+        /* 模拟金属高光边缘（上边缘反光） */
+        .theme-banner:before {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 8px;
+            right: 8px;
+            height: 3px;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 80%);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        /* 模拟底部阴影凹槽 */
+        .theme-banner:after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 10px;
+            right: 10px;
+            height: 4px;
+            background: rgba(0,0,0,0.25);
+            filter: blur(2px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        /* 悬停无效果，保持静态金属质感 */
+        .theme-banner:hover {
+            background: linear-gradient(180deg, #D86DA5 0%, #c1558a 30%, #a33e6f 70%, #C24E8A 100%);
+            transform: none;
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.25), 0 5px 8px rgba(0,0,0,0.3), inset 0 -2px 0 rgba(0,0,0,0.2);
+            cursor: default;
+        }
+        .button {
+            display: block;
+            background: linear-gradient(180deg, #d0d0d0 0%, #a0a0a0 100%);
+            color: #222222;
+            text-align: center;
+            padding: 12px 0;
+            margin: 16px 0;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: bold;
+            border: 1px solid #777777;
+            border-radius: 6px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3);
+            cursor: pointer;
+            text-shadow: 0 1px 0 #cccccc;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .button:hover {
+            background: linear-gradient(180deg, #b8b8b8 0%, #8a8a8a 100%);
+            border-color: #D86DA5;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 3px rgba(0,0,0,0.4);
+            transform: translateY(1px);
+            color: #111;
+        }
+        .button:active {
+            background: linear-gradient(0deg, #a0a0a0 0%, #c0c0c0 100%);
+            transform: translateY(2px);
+        }
+        .tag {
+            display: inline-block;
+            background: linear-gradient(180deg, #dddddd 0%, #bbbbbb 100%);
+            padding: 4px 10px;
+            font-size: 11px;
+            color: #222222;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            border: 1px solid #999999;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+            transition: all 0.2s;
+            cursor: default;
+        }
+        .tag:hover {
+            background: linear-gradient(180deg, #c0c0c0 0%, #a0a0a0 100%);
+            border-color: #D86DA5;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+            color: #a0346e;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #aaaaaa;
+            border-bottom: 1px solid #eeeeee;
+            margin: 12px 0;
+        }
+        .landscape-tip {
+            background: linear-gradient(180deg, #f4e4c8 0%, #e0ccaa 100%);
+            border: 1px solid #aa8844;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #443311;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .landscape-tip:hover {
+            background: linear-gradient(180deg, #e2cfaa 0%, #cdb48c 100%);
+            border-color: #D86DA5;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #555555;
+            margin-top: 24px;
+            padding: 12px 0;
+            border-top: 1px solid #999999;
+            background: #d0d0d0;
+            text-shadow: 0 1px 0 #dddddd;
+            transition: background 0.2s;
+            position: relative;
+        }
+        .footer:hover {
+            background: #bcbcbc;
+            border-top-color: #D86DA5;
+        }
+        a {
+            color: #333333;
+            text-decoration: none;
+        }
+        a:not(.button):hover {
+            color: #D86DA5;
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 0 12px;
+            }
+            .info-label {
+                width: 70px;
+            }
+            .tab-item {
+                padding: 8px 12px;
+                font-size: 15px;
+            }
+            .theme-banner {
+                padding: 12px 10px;
+                font-size: 15px;
+            }
+        }
+        .clickable-text {
+            cursor: pointer;
+        }
+        .clickable-text:hover {
+            color: #D86DA5;
+            text-decoration: underline;
+        }
+        /* 顶栏装饰线 */
+        .title-bar:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            pointer-events: none;
+        }
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #c0c0c0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D86DA5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c24e8a;
+        }
+        .info-row strong {
+            color: #c24e8a;
+        }
+        /* 键盘操作提示小贴士（极简，不影响布局） */
+        .keyboard-hint {
+            font-size: 10px;
+            text-align: center;
+            color: #666;
+            margin-top: 4px;
+            margin-bottom: 8px;
+            display: none;
+        }
+        @media (min-width: 800px) {
+            .keyboard-hint {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1>哔哩经典</h1>
-    <div class="version">BiliClassic v0.1.1-debug</div>
-    <div class="desc">
-        <strong>说明：</strong><br>
-        · 支持 Android 2.2 - 4.4 设备<br>
-        · 还原 2013 年 B站经典界面<br>
-        · 轻量级，仅 760KB<br>
-        · 完全离线可用
+
+<div class="page-container">
+    <!-- 深色金属竖向拉丝标题栏 -->
+    <div class="title-bar">
+        <div class="tabs" id="tabHeaders">
+            <div class="tab-item active" data-page="0">主页</div>
+            <div class="tab-item" data-page="1">关于</div>
+        </div>
+        <div class="tab-highlight" id="tabHighlight"></div>
     </div>
-    <a href="BiliClassic-0.1.1-debug.apk" class="download-btn">⬇ 下载 APK</a>
-    <div class="note">
-        如无法下载，请使用浏览器自带下载功能
-    </div>
-    <div class="footer">
-        © 2026 一只毛子球 | 个人项目，仅供学习
+
+    <div class="slider-wrapper" id="sliderWrapper">
+        <!-- 第0页 主页 -->
+        <div class="page">
+            <div class="container">
+                <!-- 金属渐变拟物条 - 从上到下金属质感 -->
+                <div class="theme-banner">
+                    安卓2也要看B站！
+                </div>
+
+                <div class="card">
+                    <div class="card-title">软件简介</div>
+                    <div class="info-row">
+                        BiliClassic 是一款专为安卓 2.1+ 老设备打造的 Bilibili 客户端。
+                        完美复刻 2013 年 B 站界面风格，轻量流畅，兼容性极强。
+                    </div>
+                    <hr>
+                    <div class="info-row">
+                        <span class="info-label">最新版本</span> 0.2.5 (稳定版)<br>
+                        <span class="info-label">安装包大小</span> 1.66 MB<br>
+                        <span class="info-label">支持系统</span> Android 2.1 ~ 14<br>
+                        <span class="info-label">架构支持</span> ARM-v5TE / ARM-v6 / ARM-v7a / ARM-v8a / x86<br>
+                        <span class="info-label">开源协议</span> GPL v3
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">下载 BiliClassic</div>
+                    <div class="info-row" style="text-align: center;">
+                        请选择以下方式获取最新版本
+                    </div>
+                    <a href="#" class="button" onclick="alert('请加入QQ群 754725037 获取最新APK'); return false;">下载 0.2.5 稳定版 (APK)</a>
+                    <div class="info-row" style="font-size: 12px; text-align: center; color: #555;">
+                        或加入 QQ 群获取历史版本及反馈：<span style="color:#D86DA5; font-weight:bold;">754725037</span>
+                    </div>
+                </div>
+
+                <div class="landscape-tip">
+                    ◆ 如果您使用的是 HTC ChaCha、三星 Galaxy Y Pro 等横屏设备，BiliClassic 已自动适配横屏模式，设置中可关闭。
+                </div>
+
+                <div class="card">
+                    <div class="card-title">播放器与解码包</div>
+                    <div class="info-row">
+                        BiliClassic 本身不内置播放器，需要配合 MX Player、VLC 或 VPlayer 使用。
+                    </div>
+                    <div class="info-row" style="margin-top: 8px;">
+                        <strong>解码包选择（MX Player）：</strong><br>
+                        • 2010年及以前手机 / 低端机 → 安装 ARMv6a 解码包<br>
+                        • 2011年后高端手机 → 安装 ARMv7a 解码包<br>
+                        • 2015年后 64位设备 → 无需安装，直接用系统播放器
+                    </div>
+                    <div class="info-row" style="margin-top: 8px;">
+                        ◆ 群文件提供 MX Player 1.7.19 及配套 v6/v7 解码包。
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">0.2.5 更新日志</div>
+                    <div class="info-row">
+                        <strong>设备信息</strong><br>
+                        - 新增物理内存检测，显示可用物理内存和 Java 堆上限<br>
+                        - 修复部分设备无法识别的问题<br><br>
+                        <strong>搜索功能</strong><br>
+                        - 物理搜索键设备可随时跳转搜索界面<br>
+                        - 新增 GTA 作弊码彩蛋 (nuttertools / professionaltools / thugstools)<br><br>
+                        <strong>评论区</strong><br>
+                        - 背景统一为 #F5F5F5，与整体风格一致<br><br>
+                        <strong>离线管理</strong><br>
+                        - 修复返回键无法退出问题<br><br>
+                        <strong>其他</strong><br>
+                        - 修复视频详情页在错误时机绘制导致的崩溃
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">特别鸣谢</div>
+                    <div class="info-row" style="text-align: center;">
+                        mougou666 &nbsp;&nbsp;|&nbsp;&nbsp; K老余
+                    </div>
+                    <div class="info-row" style="text-align: center; margin-top: 8px;">
+                        <span class="tag">赞助感谢 电起脚尖</span>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    BiliClassic - 为老设备而生<br>
+                    安卓2也要看B站！<br>
+                    本软件基于 GPL v3 开源，项目主页：Gitee / GitHub
+                </div>
+            </div>
+        </div>
+
+        <!-- 第1页 关于页面 -->
+        <div class="page">
+            <div class="container">
+                <!-- 金属渐变拟物条 - 从上到下金属质感 -->
+                <div class="theme-banner">
+                    关于 BiliClassic
+                </div>
+
+                <div class="card">
+                    <div class="card-title">项目起源</div>
+                    <div class="info-row">
+                        BiliClassic 诞生于2026年6月，旨在让老旧安卓设备（尤其Android 2.x）重新获得访问Bilibili的能力。当现代应用纷纷抛弃旧系统，我们坚持为怀旧用户与低配硬件提供轻量、简洁、无冗余的B站体验。
+                    </div>
+                    <div class="info-row" style="margin-top: 10px;">
+                        原生支持 Android 2.1 (Eclair) 至 Android 16，安装包不到2MB，在384MB内存设备上依然流畅运行。界面尝试模仿2013年B站古早风格。
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">核心特性</div>
+                    <div class="info-row">
+                        ◆ 极速启动，无广告，无追踪<br>
+                        ◆ 支持视频播放、离线缓存下载<br>
+                        ◆ 分P视频下载支持，离线管理<br>
+                        ◆ 完整评论区浏览<br>
+                        ◆ 历史记录与收藏夹同步<br>
+                        ◆ 横屏设备专用模式<br>
+                        ◆ 设备信息检测与崩溃日志捕获<br>
+                        ◆ 开源透明，社区驱动，持续维护
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">开发者团队</div>
+                    <div class="info-row">
+                        <strong>主创 & 核心维护：</strong> 一只毛子球<br>
+                        <strong>测试与反馈：</strong> 感谢所有内测群成员<br>
+                        <strong>项目致敬：</strong> 哔哩终端 (RobinNotBad) 及腕上哔哩 (luern0313)<br>
+                        项目遵从 GPL v3 协议，所有源代码托管于 Gitee。
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">致谢与支持</div>
+                    <div class="info-row">
+                        特别致敬所有仍然保留着HTC G1、HTC Wildfire、三星Galaxy S2等经典机型的玩家，你们的坚持让BiliClassic充满意义。
+                    </div>
+                    <div class="info-row" style="margin-top: 5px;">
+                        <span class="tag">感谢 MXPlayer 团队</span>
+                        <span class="tag">致敬 VLC 开源播放器</span>
+                        <span class="tag">致谢 DeepSeek AI</span>
+                    </div>
+                    <div class="info-row" style="margin-top: 8px;">
+                        如果你也热爱复古数码文化，欢迎加入QQ群：<span style="color:#D86DA5; font-weight:bold;">754725037</span> 参与反馈或内测。
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">法律与声明</div>
+                    <div class="info-row">
+                        BiliClassic 为非官方第三方开源客户端，与哔哩哔哩公司无关。本软件仅用于学习和交流，所有视频版权归原著作权人所有。
+                    </div>
+                    <div class="info-row" style="margin-top: 6px;">
+                        版本号: 0.2.5 (稳定版) | 构建日期: 2026-06-16<br>
+                        兼容性测试: 通过 HTC Hero (Android 2.1)、HTC Wildfire、三星 S5830i 等真机测试。
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">常见问题</div>
+                    <div class="info-row">
+                        <strong>Q:</strong> 播放视频闪退怎么办？<br>
+                        <strong>A:</strong> 请确保安装了MX Player并选择正确解码包，或在设置中切换为其他播放器。<br><br>
+                        <strong>Q:</strong> 是否有弹幕功能？<br>
+                        <strong>A:</strong> 目前版本暂未集成弹幕，计划在后续版本添加。<br><br>
+                        <strong>Q:</strong> 为什么无法登录？<br>
+                        <strong>A:</strong> 请使用扫码登录或Cookie导入方式，密码登录暂不支持。<br>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    BiliClassic · 安卓2也要看B站！<br>
+                    QQ群: 754725037<br>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    (function(){
+        var tabs = document.querySelectorAll('.tab-item');
+        var sliderWrapper = document.getElementById('sliderWrapper');
+        var highlight = document.getElementById('tabHighlight');
+        var currentPage = 0;
+        var totalPages = tabs.length;
+
+        function updateHighlight(activeIndex) {
+            var activeTab = tabs[activeIndex];
+            if (!activeTab) return;
+            var parentRect = activeTab.parentNode.getBoundingClientRect();
+            var tabRect = activeTab.getBoundingClientRect();
+            var leftOffset = tabRect.left - parentRect.left;
+            var width = tabRect.width;
+            highlight.style.left = leftOffset + 'px';
+            highlight.style.width = width + 'px';
+        }
+
+        function goToPage(pageIndex, useSmooth) {
+            if (pageIndex < 0) pageIndex = 0;
+            if (pageIndex >= totalPages) pageIndex = totalPages - 1;
+            if (currentPage === pageIndex) return;
+            currentPage = pageIndex;
+            var offset = - (currentPage * 100);
+            sliderWrapper.style.transform = 'translateX(' + offset + '%)';
+            for (var i = 0; i < tabs.length; i++) {
+                if (i === currentPage) {
+                    tabs[i].classList.add('active');
+                } else {
+                    tabs[i].classList.remove('active');
+                }
+            }
+            updateHighlight(currentPage);
+        }
+
+        window.addEventListener('resize', function() {
+            updateHighlight(currentPage);
+        });
+
+        function initHighlight() {
+            setTimeout(function() {
+                updateHighlight(currentPage);
+            }, 20);
+        }
+
+        for (var i = 0; i < tabs.length; i++) {
+            (function(index) {
+                tabs[index].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (currentPage === index) return;
+                    goToPage(index, true);
+                });
+            })(i);
+        }
+
+        // 键盘左右方向键支持
+        window.addEventListener('keydown', function(e) {
+            // 左右方向键 (37: 左, 39: 右)
+            if (e.keyCode === 37) { // 左键
+                e.preventDefault();
+                if (currentPage > 0) {
+                    goToPage(currentPage - 1, true);
+                }
+            } else if (e.keyCode === 39) { // 右键
+                e.preventDefault();
+                if (currentPage < totalPages - 1) {
+                    goToPage(currentPage + 1, true);
+                }
+            }
+        });
+
+        var startX = 0;
+        var startTransform = 0;
+        var isDragging = false;
+        var wrapper = sliderWrapper;
+
+        wrapper.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startTransform = currentPage * -100;
+            isDragging = true;
+            wrapper.style.transition = 'none';
+        }, false);
+
+        wrapper.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            var moveX = e.touches[0].clientX - startX;
+            var newPercent = startTransform + (moveX / wrapper.clientWidth) * 100;
+            if (newPercent > 0) newPercent = newPercent * 0.3;
+            if (newPercent < -((totalPages-1)*100)) {
+                var over = newPercent + ((totalPages-1)*100);
+                newPercent = -((totalPages-1)*100) + over * 0.3;
+            }
+            wrapper.style.transform = 'translateX(' + newPercent + '%)';
+        }, false);
+
+        wrapper.addEventListener('touchend', function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            var endX = e.changedTouches[0].clientX;
+            var deltaX = endX - startX;
+            var threshold = 50;
+            var newPage = currentPage;
+            if (Math.abs(deltaX) > threshold) {
+                if (deltaX > 0 && currentPage > 0) {
+                    newPage = currentPage - 1;
+                } else if (deltaX < 0 && currentPage < totalPages - 1) {
+                    newPage = currentPage + 1;
+                }
+            }
+            wrapper.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+            goToPage(newPage, true);
+        }, false);
+
+        var mouseDown = false;
+        var mouseStartX = 0;
+        var mouseStartPercent = 0;
+        wrapper.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            mouseDown = true;
+            startX = e.clientX;
+            startTransform = currentPage * -100;
+            wrapper.style.transition = 'none';
+            wrapper.style.cursor = 'grabbing';
+        });
+        window.addEventListener('mousemove', function(e) {
+            if (!mouseDown) return;
+            var moveX = e.clientX - startX;
+            var newPercent = startTransform + (moveX / wrapper.clientWidth) * 100;
+            if (newPercent > 0) newPercent = newPercent * 0.3;
+            if (newPercent < -((totalPages-1)*100)) {
+                var over = newPercent + ((totalPages-1)*100);
+                newPercent = -((totalPages-1)*100) + over * 0.3;
+            }
+            wrapper.style.transform = 'translateX(' + newPercent + '%)';
+        });
+        window.addEventListener('mouseup', function(e) {
+            if (!mouseDown) return;
+            mouseDown = false;
+            var deltaX = e.clientX - startX;
+            var threshold = 50;
+            var newPage = currentPage;
+            if (Math.abs(deltaX) > threshold) {
+                if (deltaX > 0 && currentPage > 0) newPage = currentPage - 1;
+                else if (deltaX < 0 && currentPage < totalPages - 1) newPage = currentPage + 1;
+            }
+            wrapper.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+            goToPage(newPage, true);
+            wrapper.style.cursor = '';
+        });
+
+        initHighlight();
+        sliderWrapper.style.transform = 'translateX(0%)';
+        sliderWrapper.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+
+        var interactiveElements = document.querySelectorAll('.button, a, .tag, .clickable-text');
+        for (var b = 0; b < interactiveElements.length; b++) {
+            interactiveElements[b].addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    })();
+</script>
 </body>
 </html>
