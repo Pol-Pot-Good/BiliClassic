@@ -30,6 +30,7 @@ import tv.biliclassic.model.PlayerData;
 import tv.biliclassic.model.VideoInfo;
 import tv.biliclassic.model.VideoPart;
 import tv.biliclassic.model.UserInfo;
+import tv.biliclassic.player.PlayerAnimActivity;
 
 public class VideoDetailFragment extends Fragment {
 

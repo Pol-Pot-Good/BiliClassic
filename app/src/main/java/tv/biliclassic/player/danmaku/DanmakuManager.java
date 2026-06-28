@@ -1,4 +1,4 @@
-package tv.biliclassic.danmaku;
+package tv.biliclassic.player.danmaku;
 
 import android.app.Activity;
 import android.content.res.Resources;

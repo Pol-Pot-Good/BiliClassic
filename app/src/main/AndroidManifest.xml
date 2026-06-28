@@ -93,7 +93,7 @@
 
         <!-- 注册 PlayerAnimActivity -->
         <activity
-            android:name=".PlayerAnimActivity"
+            android:name=".player.PlayerAnimActivity"
             android:hardwareAccelerated="false"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize"
@@ -109,7 +109,7 @@
             android:screenOrientation="portrait" />
 
         <activity
-            android:name=".BiliPlayerActivity"
+            android:name=".player.BiliPlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />

@@ -1,4 +1,4 @@
-package tv.biliclassic;
+package tv.biliclassic.player;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -17,6 +17,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import tv.biliclassic.R;
+import tv.biliclassic.SettingsActivity;
 
 public class PlayerAnimActivity extends Activity {
 

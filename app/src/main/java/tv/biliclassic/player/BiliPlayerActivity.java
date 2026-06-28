@@ -1,4 +1,4 @@
-package tv.biliclassic;
+package tv.biliclassic.player;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -43,7 +43,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import tv.biliclassic.danmaku.DanmakuManager;
+import tv.biliclassic.R;
+import tv.biliclassic.SettingsActivity;
+import tv.biliclassic.player.danmaku.DanmakuManager;
 import tv.biliclassic.subsettings.DecoderSettingsActivity;
 import tv.biliclassic.util.NetWorkUtil;
 import tv.danmaku.ijk.media.player.AndroidMediaPlayer;

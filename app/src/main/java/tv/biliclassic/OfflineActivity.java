@@ -34,6 +34,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import tv.biliclassic.util.SharedPreferencesUtil;
+import tv.biliclassic.player.BiliPlayerActivity;
 
 public class OfflineActivity extends BaseActivity {
 
