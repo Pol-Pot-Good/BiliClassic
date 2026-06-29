@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="I:\Other\BiliClassic\app\libs\support-v4-18.0.0.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.0"
+        sha1="8d432f7d24bb2e354337fc02b022f89f9273cd2c">
+        <dex dex="I:\Other\BiliClassic\app\build\intermediates\pre-dexed\release\support-v4-18.0.0_009016a4689e50e43e72dd38fca85fdfbf5203c3.jar" />
+    </item>
+
+</items>

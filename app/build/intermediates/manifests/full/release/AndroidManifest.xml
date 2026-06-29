@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="tv.biliclassic"
+    android:versionCode="19"
+    android:versionName="0.3.4" >
+
+    <uses-sdk
+        android:minSdkVersion="4"
+        android:targetSdkVersion="17" />
+
+    <!-- 权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:name="tv.biliclassic.BiliApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="哔哩经典"
+        android:largeHeap="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="tv.biliclassic.BaseActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="tv.biliclassic.CrashReportActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- MainActivity -->
+        <activity
+            android:name="tv.biliclassic.MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="tv.biliclassic.SearchActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- AboutActivity -->
+        <activity
+            android:name="tv.biliclassic.AboutActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar" />
+        <activity
+            android:name="tv.biliclassic.VideoDetailActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="tv.biliclassic.DeviceInfoActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="tv.biliclassic.UserProfileActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 注册 LoginActivity -->
+        <activity
+            android:name="tv.biliclassic.HistoryActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 注册 SettingsActivity -->
+        <activity
+            android:name="tv.biliclassic.SettingsActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 注册 OfflineActivity -->
+        <activity
+            android:name="tv.biliclassic.OfflineActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 注册 LoginActivity -->
+        <activity
+            android:name="tv.biliclassic.LoginActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 注册 FavoriteFolderActivity -->
+        <activity
+            android:name="tv.biliclassic.FavoriteFolderListActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- 注册 PlayerAnimActivity -->
+        <activity
+            android:name="tv.biliclassic.PlayerAnimActivity"
+            android:configChanges="orientation|screenSize"
+            android:hardwareAccelerated="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
+        <!-- 注册 LoginActivity -->
+        <activity
+            android:name="tv.biliclassic.FavoriteVideoListActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="tv.biliclassic.SpecialLoginActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="tv.biliclassic.PlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+    </application>
+
+</manifest>
