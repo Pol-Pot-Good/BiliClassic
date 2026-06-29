@@ -35,7 +35,7 @@ public class AboutFragment extends Fragment {
             officialWebsite.setMovementMethod(LinkMovementMethod.getInstance());
 
         TextView releaseWebsite = (TextView) view.findViewById(R.id.release_website);
-        releaseWebsite.setText(Html.fromHtml("<a href=\"https://github.com/Pol-Pot-Good/BiliClassic\">GitHub</a>"));
+        releaseWebsite.setText(Html.fromHtml("<a href=\"https://github.com/AktuelleKamera/BiliClassic\">GitHub</a>"));
         releaseWebsite.setMovementMethod(LinkMovementMethod.getInstance());
 
         TextView bilibiliWebsite = (TextView) view.findViewById(R.id.bilibili_website);

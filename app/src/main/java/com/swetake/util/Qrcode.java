@@ -34,11 +34,26 @@
 
 package com.swetake.util;
 
+import android.content.Context;
+import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import android.content.Context;
 
 public class Qrcode {
+
+    private static final String TAG = "Qrcode";
+    private static Context sContext;
+
+    public static void init(Context context) {
+        if (context != null) {
+            sContext = context.getApplicationContext();
+            Log.d(TAG, "Qrcode 初始化成功");
+        } else {
+            Log.e(TAG, "Qrcode 初始化失败，Context 为 null");
+        }
+    }
+
     static final String QRCODE_DATA_PATH = "qrcode_data";
     char qrcodeErrorCorrect = 77;
     char qrcodeEncodeMode = 66;
@@ -101,30 +116,39 @@ public class Qrcode {
     }
 
     private static InputStream getDataStream(String path) {
+        Log.d(TAG, "尝试加载数据文件: " + path);
+
         try {
-            // 1. 从 assets 加载（Android 优先）
-            Context context = tv.biliclassic.BaseActivity.getAppContext();
-            if (context != null) {
+            if (sContext != null) {
                 String fileName = path.substring(path.lastIndexOf("/") + 1);
-                InputStream is = context.getAssets().open("qrcode_data/" + fileName);
-                if (is != null) {
-                    return is;
+                try {
+                    InputStream is = sContext.getAssets().open("qrcode_data/" + fileName);
+                    if (is != null) {
+                        Log.d(TAG, "从 assets 加载成功: " + fileName);
+                        return is;
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "从 assets 加载失败: " + e.getMessage());
                 }
+            } else {
+                Log.e(TAG, "sContext 为 null，无法从 assets 加载");
             }
-            // 2. 从类路径加载（备用）
+
             InputStream is = Qrcode.class.getResourceAsStream(path);
             if (is != null) {
+                Log.d(TAG, "从 classpath 加载成功: " + path);
                 return is;
             }
-            // 3. 尝试 / 开头
             is = Qrcode.class.getResourceAsStream("/" + path);
             if (is != null) {
+                Log.d(TAG, "从 classpath 加载成功 (绝对路径): " + path);
                 return is;
             }
-            System.err.println("找不到数据文件: " + path);
+
+            Log.e(TAG, "找不到数据文件: " + path);
             return null;
         } catch (Exception e) {
-            System.err.println("加载数据文件失败: " + path + " - " + e.getMessage());
+            Log.e(TAG, "加载数据文件异常: " + path + " - " + e.getMessage());
             return null;
         }
     }
@@ -279,18 +303,15 @@ public class Qrcode {
             int[][] var14 = new int[][]{{0, 128, 224, 352, 512, 688, 864, 992, 1232, 1456, 1728, 2032, 2320, 2672, 2920, 3320, 3624, 4056, 4504, 5016, 5352, 5712, 6256, 6880, 7312, 8000, 8496, 9024, 9544, 10136, 10984, 11640, 12328, 13048, 13800, 14496, 15312, 15936, 16816, 17728, 18672}, {0, 152, 272, 440, 640, 864, 1088, 1248, 1552, 1856, 2192, 2592, 2960, 3424, 3688, 4184, 4712, 5176, 5768, 6360, 6888, 7456, 8048, 8752, 9392, 10208, 10960, 11744, 12248, 13048, 13880, 14744, 15640, 16568, 17528, 18448, 19472, 20528, 21616, 22496, 23648}, {0, 72, 128, 208, 288, 368, 480, 528, 688, 800, 976, 1120, 1264, 1440, 1576, 1784, 2024, 2264, 2504, 2728, 3080, 3248, 3536, 3712, 4112, 4304, 4768, 5024, 5288, 5608, 5960, 6344, 6760, 7208, 7688, 7888, 8432, 8768, 9136, 9776, 10208}, {0, 104, 176, 272, 384, 496, 608, 704, 880, 1056, 1232, 1440, 1648, 1952, 2088, 2360, 2600, 2936, 3176, 3560, 3880, 4096, 4544, 4912, 5312, 5744, 6032, 6464, 6968, 7288, 7880, 8264, 8920, 9368, 9848, 10288, 10832, 11408, 12016, 12656, 13328}};
 
             int var15 = 0;
-            if(this.qrcodeVersion == 0) {
-                this.qrcodeVersion = 1;
-                for(int var16 = 1; var16 <= 40; ++var16) {
-                    if(var14[var13][var16] >= var11 + var6[this.qrcodeVersion]) {
-                        var15 = var14[var13][var16];
-                        break;
-                    }
-                    ++this.qrcodeVersion;
-                }
-            } else {
-                var15 = var14[var13][this.qrcodeVersion];
+            // 强制使用版本 10
+            if (this.qrcodeVersion == 0 || this.qrcodeVersion < 10) {
+                this.qrcodeVersion = 10;
             }
+            if (this.qrcodeVersion > 40) {
+                this.qrcodeVersion = 40;
+            }
+            var15 = var14[var13][this.qrcodeVersion];
+            Log.d(TAG, "使用版本: " + this.qrcodeVersion + ", 纠错等级: " + var13 + ", 容量: " + var15);
 
             var11 += var6[this.qrcodeVersion];
             var5[var7] = (byte)(var5[var7] + var6[this.qrcodeVersion]);
@@ -366,6 +387,7 @@ public class Qrcode {
                 return new boolean[1][1];
             }
 
+            // 修复溢出问题
             if(var11 <= var15 - 4) {
                 var4[var54] = 0;
                 var5[var54] = 4;
@@ -373,7 +395,10 @@ public class Qrcode {
                 var4[var54] = 0;
                 var5[var54] = (byte)(var15 - var11);
             } else if(var11 > var15) {
-                System.out.println("overflow");
+                // 数据溢出，截断到最大容量
+                System.err.println("overflow: var11=" + var11 + " var15=" + var15);
+                var5[var54] = 0;
+                var11 = var15;
             }
 
             byte[] var62 = divideDataBy8Bits(var4, var5, var33);
@@ -405,7 +430,7 @@ public class Qrcode {
             byte var66 = selectMask(var64, var19[this.qrcodeVersion] + var17 * 8);
             byte var67 = (byte)(1 << var66);
             byte var45 = (byte)(var13 << 3 | var66);
-            String[] var46 = new String[]{"101010000010010", "101000100100101", "101111001111100", "101101101001011", "100010111111001", "100000011001110", "100111110010111", "100101010100000", "111011111000100", "111001011110011", "111110110101010", "111100010011101", "110011000101111", "110001100011000", "110110001000001", "110100101110110", "001011010001001", "001001110111110", "001110011100111", "001100111010000", "000011101100010", "000001001010101", "000110100001100", "000100000111011", "011010101011111", "011000001101000", "011111100110001", "011101000000110", "010010010110100", "010000110000011", "010111011011010", "010101111101101"};
+            String[] var46 = new String[]{"101010000010010", "101000100100101", "101111001111100", "101101101001011", "100010111111001", "100000011001110", "100111110010111", "100101010100000", "111011111000100", "111001011110011", "111110110101010", "111100010011101", "110011000101111", "110001100011000", "110110001000001", "110100101110110", "001011010001001", "001001110111110", "001110011100111", "001100111010000", "000011101100010", "000001001010101", "000110100001100", "000100000111011", "011010101011111", "011000001101000", "011111100110001", "011101000000110", "010010010110100", "010000110000011", "010111011011010", "010101101111101"};
 
             for(int var47 = 0; var47 < 15; ++var47) {
                 byte var48 = Byte.parseByte(var46[var45].substring(var47, var47 + 1));

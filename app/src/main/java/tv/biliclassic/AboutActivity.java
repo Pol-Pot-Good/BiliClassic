@@ -30,7 +30,7 @@ public class AboutActivity extends BaseActivity {
 
         // 反馈论坛链接
         TextView releaseWebsite = (TextView) findViewById(R.id.release_website);
-        releaseWebsite.setText(Html.fromHtml("<a href=\"https://github.com/Pol-Pot-Good/BiliClassic\">GitHub Issues</a>"));
+        releaseWebsite.setText(Html.fromHtml("<a href=\"https://github.com/AktuelleKamera/BiliClassic\">GitHub Issues</a>"));
         releaseWebsite.setMovementMethod(LinkMovementMethod.getInstance());
 
         // B 站链接

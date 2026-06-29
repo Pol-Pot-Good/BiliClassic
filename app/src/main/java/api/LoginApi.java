@@ -1,5 +1,6 @@
 package tv.biliclassic.api;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 
 import org.json.JSONException;
@@ -33,9 +34,10 @@ public class LoginApi {
 
     /**
      * 获取登录二维码
+     * @param context 上下文（用于 QRCodeUtil 加载 assets）
      * @return 二维码 Bitmap
      */
-    public static Bitmap getLoginQR() throws JSONException, IOException {
+    public static Bitmap getLoginQR(Context context) throws JSONException, IOException {
         String url = "https://passport.bilibili.com/x/passport-login/web/qrcode/generate?source=main-fe-header&go_url=https:%2F%2Fwww.bilibili.com%2F";
 
         String response = NetWorkUtil.get(url);
@@ -47,8 +49,8 @@ public class LoginApi {
         JSONObject data = json.getJSONObject("data");
         oauthKey = data.getString("qrcode_key");
         String qrUrl = data.getString("url");
-
-        return QRCodeUtil.createQRCodeBitmap(qrUrl, 320, 320);
+        // 传入 Context 参数
+        return QRCodeUtil.createQRCodeBitmap(context, qrUrl, 320, 320);
     }
 
     /**
@@ -77,19 +79,12 @@ public class LoginApi {
             int code = json.optInt("code", -1);
 
             if (code == 0) {
-                // 登录成功
-                JSONObject data = json.optJSONObject("data");
-                if (data != null) {
-                }
                 return 2;
             } else if (code == 86101) {
-                // 未扫描
                 return 0;
             } else if (code == 86090) {
-                // 已扫描等待确认
                 return 1;
             } else if (code == 86038) {
-                // 二维码已过期
                 return -1;
             } else {
                 return -2;
@@ -108,7 +103,6 @@ public class LoginApi {
             JSONObject json = new JSONObject(response);
             JSONObject data = json.getJSONObject("data");
 
-            // 保存用户信息
             if (data.has("mid")) {
                 SharedPreferencesUtil.putLong(SharedPreferencesUtil.mid, data.getLong("mid"));
             }
@@ -146,6 +140,7 @@ public class LoginApi {
                         try {
                             NetWorkUtil.post(ssoUrl, "");
                         } catch (IOException e) {
+                            // 忽略单个 SSO 失败
                         }
                     }
                 }
