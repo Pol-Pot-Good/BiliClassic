@@ -1,0 +1,182 @@
+[
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_favorite_video.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_favorite_video.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\custom_actionbar.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\custom_actionbar.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_video_detail.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_video_detail.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_favorite_folder.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_favorite_folder.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\bili_about.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\bili_about.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_crash_report.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_crash_report.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\list_footer.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\list_footer.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_offline.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_offline.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_user_profile.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_user_profile.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_recommend.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_recommend.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\content_home.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\content_home.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_player.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_player.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\list_header.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\list_header.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_anime_small.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_anime_small.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_user_video.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_user_video.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_recommend.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_recommend.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_main.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\history_activity.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\history_activity.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\title_bar_video.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\title_bar_video.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_special_login.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_special_login.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\content_profile.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\content_profile.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_offline.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_offline.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_search.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_search.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_developing.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_developing.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_comment.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_comment.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_login.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_login.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_favorite_folder_list.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_favorite_folder_list.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\search_result_item.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\search_result_item.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\content_about.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\content_about.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_settings.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_settings.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_qr_login.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_qr_login.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_partition_section.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_partition_section.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_about.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_about.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_timeline_day.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_timeline_day.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\history_item.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\history_item.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_comment.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_comment.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_favorite_video_list.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_favorite_video_list.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_video_part.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_video_part.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_related_videos.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_related_videos.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_new_anime.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_new_anime.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_device_info.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_device_info.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\fragment_timeline.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\fragment_timeline.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_video_detail.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_video_detail.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\item_anime_large.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\item_anime_large.xml"
+    },
+    {
+        "merged": "I:\\Other\\BiliClassic\\app\\build\\intermediates\\res\\merged\\release\\layout\\activity_player_anim.xml",
+        "source": "I:\\Other\\BiliClassic\\app\\src\\main\\res\\layout\\activity_player_anim.xml"
+    }
+]

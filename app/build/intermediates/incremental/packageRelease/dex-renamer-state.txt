@@ -1,0 +1,4 @@
+#Mon Jun 29 16:09:56 CST 2026
+base.0=I\:\\Other\\BiliClassic\\app\\build\\intermediates\\transforms\\dex\\release\\folders\\1000\\1f\\main
+renamed.0=classes.dex
+file.0=I\:\\Other\\BiliClassic\\app\\build\\intermediates\\transforms\\dex\\release\\folders\\1000\\1f\\main\\classes.dex
