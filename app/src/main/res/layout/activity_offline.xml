@@ -77,33 +77,29 @@
     </FrameLayout>
 
     <!-- 存储空间占用条 -->
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/storage_bar"
         android:layout_width="match_parent"
-        android:layout_height="24dp"
-        android:orientation="vertical"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:gravity="center_vertical"
-        android:background="#F0F0F0">
+        android:layout_height="22dp">
 
         <ProgressBar
             android:id="@+id/storage_progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="4dp"
+            android:layout_height="match_parent"
             android:max="100"
             android:progress="0"
-            android:progressDrawable="@drawable/media_player_progress_pink" />
+            android:progressDrawable="@drawable/bili_storage_usage" />
 
         <TextView
             android:id="@+id/storage_text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
             android:text="可用 0 B / 共 0 B"
-            android:textSize="10sp"
-            android:textColor="#666666"
-            android:gravity="center" />
-    </LinearLayout>
+            android:textSize="12sp"
+            android:textColor="#616161" />
+
+    </RelativeLayout>
 
 </LinearLayout>

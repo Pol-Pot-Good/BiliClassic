@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 
 import tv.biliclassic.download.VideoDownloadEntry;
 import tv.biliclassic.download.VideoDownloadEnvironment;
+import tv.biliclassic.download.VideoDownloadService;
 import tv.biliclassic.util.SharedPreferencesUtil;
 import tv.biliclassic.player.BiliPlayerActivity;
 
@@ -191,6 +192,14 @@ public class OfflineActivity extends BaseActivity {
 
     // 播放视频
     private void playVideo(OfflineItem item) {
+        // 未下载完的视频 → 进入在线详情页
+        if (!item.isCompleted && item.avid > 0) {
+            Intent intent = new Intent(this, VideoDetailActivity.class);
+            intent.putExtra("aid", item.avid);
+            startActivity(intent);
+            return;
+        }
+
         if (item.videoFile == null || !item.videoFile.exists()) {
             Toast.makeText(this, "视频文件不存在", Toast.LENGTH_SHORT).show();
             refreshList();
@@ -269,9 +278,23 @@ public class OfflineActivity extends BaseActivity {
     // 删除视频
     private void deleteVideo(OfflineItem item) {
         try {
-            boolean deleted = false;
-            if (item.videoFile != null && item.videoFile.exists()) {
-                deleted = item.videoFile.delete();
+            if (item.isCompleted && item.env != null) {
+                // 已完成的新版 → 删整个目录
+                item.env.deleteEntry();
+            } else if (!item.isCompleted) {
+                // 下载中的 → 先取消服务，再删
+                Intent cancelIntent = new Intent(this, VideoDownloadService.class);
+                cancelIntent.setAction(VideoDownloadService.ACTION_CANCEL);
+                startService(cancelIntent);
+                if (item.env != null) {
+                    item.env.deleteEntry();
+                } else if (item.videoFile != null) {
+                    item.videoFile.delete();
+                }
+            } else {
+                if (item.videoFile != null && item.videoFile.exists()) {
+                    item.videoFile.delete();
+                }
             }
             if (item.coverFile != null && item.coverFile.exists()) {
                 item.coverFile.delete();
@@ -285,11 +308,7 @@ public class OfflineActivity extends BaseActivity {
                 }
             }
 
-            if (deleted) {
-                Toast.makeText(this, "已删除: " + item.title, Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "删除失败", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(this, "已删除: " + item.title, Toast.LENGTH_SHORT).show();
             refreshList();
         } catch (Exception e) {
             Toast.makeText(this, "删除失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -463,6 +482,7 @@ public class OfflineActivity extends BaseActivity {
                 item.isCompleted = entry.isCompleted;
                 item.downloadedBytes = entry.downloadedBytes;
                 item.totalBytes = entry.totalBytes;
+                item.isPaused = entry.isPaused;
                 item.avid = entry.avid;
                 item.page = entry.page;
                 if (item.videoFile != null && item.videoFile.exists()) {
@@ -736,12 +756,12 @@ public class OfflineActivity extends BaseActivity {
     private String formatFileSize(long size) {
         if (size < 1024) {
             return size + " B";
-        } else if (size < 1024 * 1024) {
-            return (size / 1024) + " KB";
-        } else if (size < 1024 * 1024 * 1024) {
-            return (size / 1024 / 1024) + " MB";
+        } else if (size < 1024L * 1024) {
+            return String.format("%.1f KB", size / 1024.0f);
+        } else if (size < 1024L * 1024 * 1024) {
+            return String.format("%.1f MB", size / (1024.0f * 1024));
         } else {
-            return (size / 1024 / 1024 / 1024) + " GB";
+            return String.format("%.1f GB", size / (1024.0f * 1024 * 1024));
         }
     }
 
@@ -839,6 +859,7 @@ public class OfflineActivity extends BaseActivity {
                 holder.state = (TextView) convertView.findViewById(R.id.state);
                 holder.btnPlay = (ImageView) convertView.findViewById(R.id.btn_play);
                 holder.itemProgress = (ProgressBar) convertView.findViewById(R.id.progress_bar);
+                holder.progressIndeterminate = (ImageView) convertView.findViewById(R.id.progress_indeterminate);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
@@ -867,17 +888,69 @@ public class OfflineActivity extends BaseActivity {
                 if (holder.itemProgress != null) {
                     if (!item.isCompleted && item.totalBytes > 0) {
                         holder.itemProgress.setVisibility(View.VISIBLE);
+                        holder.itemProgress.setIndeterminate(false);
                         int pct = (int) (item.downloadedBytes * 100 / item.totalBytes);
                         holder.itemProgress.setProgress(pct);
                         holder.state.setText("下载中 " + pct + "%");
+                        if (holder.progressIndeterminate != null) {
+                            holder.progressIndeterminate.setVisibility(View.GONE);
+                        }
+                    } else if (!item.isCompleted && item.totalBytes <= 0) {
+                        holder.itemProgress.setVisibility(View.GONE);
+                        if (holder.progressIndeterminate != null) {
+                            holder.progressIndeterminate.setVisibility(View.VISIBLE);
+                            final ImageView iv = holder.progressIndeterminate;
+                            mainHandler.post(new Runnable() {
+                                public void run() {
+                                    android.graphics.drawable.AnimationDrawable anim =
+                                            (android.graphics.drawable.AnimationDrawable) iv.getDrawable();
+                                    if (anim != null) {
+                                        anim.stop();
+                                        anim.start();
+                                    }
+                                }
+                            });
+                        }
+                        holder.state.setText("准备中...");
                     } else {
                         holder.itemProgress.setVisibility(View.GONE);
+                        if (holder.progressIndeterminate != null) {
+                            holder.progressIndeterminate.setVisibility(View.GONE);
+                        }
                     }
                 }
 
                 if (holder.btnPlay != null) {
                     if (!item.isCompleted) {
-                        holder.btnPlay.setVisibility(View.GONE);
+                        final long itemKey = item.getKey();
+                        final boolean isPaused = item.isPaused;
+                        holder.btnPlay.setVisibility(View.VISIBLE);
+                        holder.btnPlay.setImageResource(isPaused
+                                ? android.R.drawable.ic_media_play
+                                : android.R.drawable.ic_media_pause);
+                        holder.btnPlay.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (item.isPaused) {
+                                    item.isPaused = false;
+                                    saveItemPaused(item, false);
+                                    Intent intent = new Intent(OfflineActivity.this,
+                                            VideoDownloadService.class);
+                                    intent.setAction(VideoDownloadService.ACTION_RESUME);
+                                    intent.putExtra("key", itemKey);
+                                    startService(intent);
+                                } else {
+                                    item.isPaused = true;
+                                    saveItemPaused(item, true);
+                                    Intent intent = new Intent(OfflineActivity.this,
+                                            VideoDownloadService.class);
+                                    intent.setAction(VideoDownloadService.ACTION_PAUSE);
+                                    intent.putExtra("key", itemKey);
+                                    startService(intent);
+                                }
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
                     } else {
                         holder.btnPlay.setVisibility(View.VISIBLE);
                         holder.btnPlay.setImageResource(R.drawable.ic_btn_av_play_chroma);
@@ -906,6 +979,7 @@ public class OfflineActivity extends BaseActivity {
         TextView state;
         ImageView btnPlay;
         ProgressBar itemProgress;
+        ImageView progressIndeterminate;
     }
 
     static class OfflineItem {
@@ -928,11 +1002,29 @@ public class OfflineActivity extends BaseActivity {
         List<String> pages;
         List<File> pagesFile;
         int totalPageCount;
+        boolean isPaused;
+
+        long getKey() {
+            return (avid << 32) | (page & 0xFFFFFFFFL);
+        }
 
         String getCacheKey() {
             if (env != null) return env.avid + "/" + env.page;
             if (title != null) return title;
             return String.valueOf(System.identityHashCode(this));
+        }
+    }
+
+    private void saveItemPaused(OfflineItem item, boolean paused) {
+        if (item.env == null) return;
+        try {
+            VideoDownloadEntry entry = item.env.loadEntry();
+            if (entry != null) {
+                entry.isPaused = paused;
+                item.env.saveEntry(entry);
+            }
+        } catch (Exception e) {
+            // ignore
         }
     }
 }

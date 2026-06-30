@@ -28,6 +28,8 @@ public class VideoDownloadEntry implements Serializable {
     private static final String KEY_TOTAL_BYTES = "total_bytes";
     private static final String KEY_DOWNLOADED_BYTES = "downloaded_bytes";
     private static final String KEY_IS_COMPLETED = "is_completed";
+    private static final String KEY_VIDEO_URL = "video_url";
+    private static final String KEY_IS_PAUSED = "is_paused";
     private static final String KEY_TIME_STAMP = "time_stamp";
     private static final String KEY_STORAGE_PATH = "storage_path";
     private static final String KEY_UP_NAME = "up_name";
@@ -55,6 +57,8 @@ public class VideoDownloadEntry implements Serializable {
     public long totalBytes;
     public long downloadedBytes;
     public boolean isCompleted;
+    public String videoUrl;     // 下载URL，用于重启后恢复
+    public boolean isPaused;    // 是否由用户暂停
     public long timeStamp;
     public String storagePath;  // entry.json 所在路径
     public String upName;       // UP主名称
@@ -109,6 +113,8 @@ public class VideoDownloadEntry implements Serializable {
         obj.put(KEY_TOTAL_BYTES, totalBytes);
         obj.put(KEY_DOWNLOADED_BYTES, downloadedBytes);
         obj.put(KEY_IS_COMPLETED, isCompleted);
+        obj.put(KEY_VIDEO_URL, videoUrl != null ? videoUrl : "");
+        obj.put(KEY_IS_PAUSED, isPaused);
         obj.put(KEY_TIME_STAMP, timeStamp);
         obj.put(KEY_STORAGE_PATH, storagePath != null ? storagePath : "");
         obj.put(KEY_UP_NAME, upName != null ? upName : "");
@@ -131,6 +137,8 @@ public class VideoDownloadEntry implements Serializable {
         totalBytes = obj.optLong(KEY_TOTAL_BYTES, 0);
         downloadedBytes = obj.optLong(KEY_DOWNLOADED_BYTES, 0);
         isCompleted = obj.optBoolean(KEY_IS_COMPLETED, false);
+        videoUrl = obj.optString(KEY_VIDEO_URL, "");
+        isPaused = obj.optBoolean(KEY_IS_PAUSED, false);
         timeStamp = obj.optLong(KEY_TIME_STAMP, 0);
         storagePath = obj.optString(KEY_STORAGE_PATH, "");
         upName = obj.optString(KEY_UP_NAME, "");

@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.os.IBinder;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * 视频下载服务（Android Service）
@@ -44,13 +45,24 @@ public class VideoDownloadService extends Service {
 
         String action = intent.getAction();
         if (ACTION_PAUSE.equals(action)) {
-            if (mDownloadManager != null) mDownloadManager.pauseCurrent();
+            long key = intent.getLongExtra("key", 0);
+            if (mDownloadManager != null) {
+                if (key != 0) mDownloadManager.pauseByKey(key);
+                else mDownloadManager.pauseCurrent();
+            }
             return START_NOT_STICKY;
         }
         if (ACTION_RESUME.equals(action)) {
             long key = intent.getLongExtra("key", 0);
-            if (key != 0 && mDownloadManager != null) mDownloadManager.resumePaused(key);
-            else if (mDownloadManager != null) mDownloadManager.resumeCurrent();
+            if (key != 0 && mDownloadManager != null) {
+                boolean found = mDownloadManager.resumePaused(key);
+                if (!found) {
+                    // 重启后内存任务丢失，从 entry.json 恢复
+                    resumeFromDisk(key);
+                }
+            } else if (mDownloadManager != null) {
+                mDownloadManager.resumeCurrent();
+            }
             return START_NOT_STICKY;
         }
         if (ACTION_CANCEL.equals(action)) {
@@ -92,6 +104,7 @@ public class VideoDownloadService extends Service {
         entry.description = description;
         entry.tags = tags;
         entry.typeTag = VideoDownloadEnvironment.getTypeTagFromQuality(quality);
+        entry.videoUrl = videoUrl;
         entry.state = VideoDownloadEntry.STATE_IN_QUEUE;
         entry.timeStamp = System.currentTimeMillis();
 
@@ -150,6 +163,22 @@ public class VideoDownloadService extends Service {
         intent.putExtra("tags", tags);
         intent.putExtra("video_url", videoUrl);
         context.startService(intent);
+    }
+
+    private void resumeFromDisk(long key) {
+        ArrayList<VideoDownloadEntry> allEntries = VideoDownloadEnvironment.loadAllEntries(mDownloadDir);
+        if (allEntries == null) return;
+        for (VideoDownloadEntry entry : allEntries) {
+            if (entry.getKey() == key && !entry.isCompleted
+                    && entry.videoUrl != null && entry.videoUrl.length() > 0) {
+                // 防止重复提交已在队列或下载中的任务
+                if (mDownloadManager.hasTask(key)) return;
+                entry.state = VideoDownloadEntry.STATE_IN_QUEUE;
+                entry.isPaused = false;
+                mDownloadManager.submit(entry, entry.videoUrl);
+                return;
+            }
+        }
     }
 
     private File resolveDownloadDir() {

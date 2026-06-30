@@ -65,6 +65,16 @@
                 android:layout_marginTop="3dp"
                 android:max="100"
                 android:progress="0"
+                android:progressDrawable="@drawable/media_player_progress_pink"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/progress_indeterminate"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_progress_indeterminate_holo_pink"
                 android:visibility="gone" />
         </LinearLayout>
 

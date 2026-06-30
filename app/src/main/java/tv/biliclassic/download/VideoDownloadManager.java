@@ -32,6 +32,7 @@ public class VideoDownloadManager {
     private final File mDownloadDir;
     private final Queue<VideoDownloadTask> mPendingTasks;
     private final List<VideoDownloadTask> mPausedTasks;
+    private final java.util.Set<Long> mAllTaskKeys = new java.util.HashSet<Long>();
     private VideoDownloadTask mCurrentTask;
     private Handler mWorkHandler;
     private Handler mMainHandler;
@@ -84,6 +85,13 @@ public class VideoDownloadManager {
 
     public void submit(VideoDownloadEntry entry, String videoUrl) {
         if (!mStarted || mWorkHandler == null) return;
+        // 全局去重：同一 avid+page 只能有一个任务
+        long key = entry.getKey();
+        if (mAllTaskKeys.contains(key)) {
+            android.util.Log.w("VideoDownloadManager", "拒绝重复任务: " + key);
+            return;
+        }
+        mAllTaskKeys.add(key);
         VideoDownloadTask task = new VideoDownloadTask(entry);
         task.videoUrl = videoUrl;
         Message msg = mWorkHandler.obtainMessage(MSG_SUBMIT_TASK, task);
@@ -99,14 +107,29 @@ public class VideoDownloadManager {
 
     public void cancelAll() {
         mPendingTasks.clear();
+        mAllTaskKeys.clear();
         for (int i = 0; i < mPausedTasks.size(); i++) {
             VideoDownloadTask t = mPausedTasks.get(i);
+            mAllTaskKeys.remove(t.entry.getKey());
             t.cancel();
         }
         mPausedTasks.clear();
         if (mCurrentTask != null) {
+            mAllTaskKeys.remove(mCurrentTask.entry.getKey());
             mCurrentTask.cancel();
             mCurrentTask = null;
+        }
+    }
+
+    public void pauseByKey(long key) {
+        // 如果是当前任务
+        if (mCurrentTask != null && mCurrentTask.entry.getKey() == key) {
+            pauseCurrent();
+            return;
+        }
+        // 在暂停列表中
+        for (VideoDownloadTask t : mPausedTasks) {
+            if (t.entry.getKey() == key) return; // 已暂停，忽略
         }
     }
 
@@ -114,15 +137,32 @@ public class VideoDownloadManager {
         if (mCurrentTask != null && !mCurrentTask.isCancelled()) {
             mCurrentTask.pause();
             mCurrentTask.entry.state = VideoDownloadEntry.STATE_STOPPED;
+            mCurrentTask.entry.isPaused = true;
+            saveEntry(mCurrentTask.entry);
             mPausedTasks.add(mCurrentTask);
             mCurrentTask = null;
             if (mWorkHandler != null) {
                 mWorkHandler.sendEmptyMessage(MSG_START_NEXT);
             }
         }
+        // 如果队列和当前任务都空了，取消通知
+        if (mCurrentTask == null && mPendingTasks.isEmpty()) {
+            cancelProgressNotification();
+        }
     }
 
-    public void resumePaused(long key) {
+    public boolean hasTask(long key) {
+        if (mCurrentTask != null && mCurrentTask.entry.getKey() == key) return true;
+        for (VideoDownloadTask t : mPendingTasks) {
+            if (t.entry.getKey() == key) return true;
+        }
+        for (VideoDownloadTask t : mPausedTasks) {
+            if (t.entry.getKey() == key) return true;
+        }
+        return false;
+    }
+
+    public boolean resumePaused(long key) {
         VideoDownloadTask found = null;
         for (int i = 0; i < mPausedTasks.size(); i++) {
             VideoDownloadTask t = mPausedTasks.get(i);
@@ -134,12 +174,14 @@ public class VideoDownloadManager {
         if (found != null) {
             mPausedTasks.remove(found);
             found.resume();
-            found.entry.state = VideoDownloadEntry.STATE_IN_QUEUE;
-            mPendingTasks.add(found);
-            if (mCurrentTask == null && mWorkHandler != null) {
-                mWorkHandler.sendEmptyMessage(MSG_START_NEXT);
-            }
+            found.entry.state = VideoDownloadEntry.STATE_DOWNLOADING;
+            found.entry.isPaused = false;
+            mCurrentTask = found;
+            saveEntry(found.entry);
+            showProgressNotification(found.entry);
+            return true;
         }
+        return false;
     }
 
     public void resumeCurrent() {
@@ -150,10 +192,11 @@ public class VideoDownloadManager {
         while (mPausedTasks.size() > 0) {
             VideoDownloadTask t = mPausedTasks.remove(0);
             t.resume();
-            t.entry.state = VideoDownloadEntry.STATE_IN_QUEUE;
-            mPendingTasks.add(t);
+            t.entry.state = VideoDownloadEntry.STATE_DOWNLOADING;
+            t.entry.isPaused = false;
+            saveEntry(t.entry);
         }
-        if (mCurrentTask == null && mWorkHandler != null) {
+        if (mCurrentTask == null && mPendingTasks.size() > 0) {
             mWorkHandler.sendEmptyMessage(MSG_START_NEXT);
         }
     }
@@ -162,6 +205,9 @@ public class VideoDownloadManager {
         long key = task.entry.getKey();
         if (mCurrentTask != null && mCurrentTask.entry.getKey() == key) return;
         for (VideoDownloadTask t : mPendingTasks) {
+            if (t.entry.getKey() == key) return;
+        }
+        for (VideoDownloadTask t : mPausedTasks) {
             if (t.entry.getKey() == key) return;
         }
         mPendingTasks.add(task);
@@ -192,6 +238,7 @@ public class VideoDownloadManager {
         mCurrentTask = mPendingTasks.poll();
         if (mCurrentTask == null) return;
         mCurrentTask.entry.state = VideoDownloadEntry.STATE_DOWNLOADING;
+        showProgressNotification(mCurrentTask.entry);
         executeDownload(mCurrentTask);
     }
 
@@ -219,6 +266,7 @@ public class VideoDownloadManager {
         entry.downloadEnv = env;
 
         entry.isCompleted = false;
+        entry.videoUrl = task.videoUrl;
         env.saveEntry(entry);
 
         if (task.videoUrl == null || task.videoUrl.length() == 0) {
@@ -409,6 +457,34 @@ public class VideoDownloadManager {
         });
     }
 
+    private void showProgressNotification(final VideoDownloadEntry entry) {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mNotifHelper.notifyDownloadProgress(entry);
+            }
+        });
+    }
+
+    private void cancelProgressNotification() {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mNotifHelper.cancelNotification();
+            }
+        });
+    }
+
+    private void saveEntry(VideoDownloadEntry entry) {
+        try {
+            VideoDownloadEnvironment env = new VideoDownloadEnvironment(
+                    mDownloadDir, entry.avid, entry.page);
+            env.saveEntry(entry);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
     private void notifyComplete(final VideoDownloadEntry entry) {
         mMainHandler.post(new Runnable() {
             @Override
@@ -419,6 +495,7 @@ public class VideoDownloadManager {
     }
 
     private void onDownloadSuccess(final VideoDownloadTask task) {
+        mAllTaskKeys.remove(task.entry.getKey());
         task.entry.state = VideoDownloadEntry.STATE_STOPPED;
         notifyComplete(task.entry);
         if (mCurrentTask == task) mCurrentTask = null;
@@ -428,6 +505,7 @@ public class VideoDownloadManager {
     }
 
     private void onDownloadFailed(final VideoDownloadTask task, final String error) {
+        mAllTaskKeys.remove(task.entry.getKey());
         task.entry.state = VideoDownloadEntry.STATE_STOPPED;
         task.entry.lastErrorMessage = error;
         mMainHandler.post(new Runnable() {

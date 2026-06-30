@@ -158,32 +158,32 @@ public class BiliDanmukuParser extends BaseDanmakuParser {
                         return;
                     }
                     item.text = textArr[4];
-                    float beginX = Float.parseFloat(textArr[0]);
-                    float beginY = Float.parseFloat(textArr[1]);
+                    float beginX = safeParseFloat(textArr[0]);
+                    float beginY = safeParseFloat(textArr[1]);
                     float endX = beginX;
                     float endY = beginY;
                     String[] alphaArr = textArr[2].split("-");
-                    int beginAlpha = (int) (AlphaValue.MAX * Float.parseFloat(alphaArr[0]));
+                    int beginAlpha = (int) (AlphaValue.MAX * safeParseFloat(alphaArr[0]));
                     int endAlpha = beginAlpha;
                     if (alphaArr.length > 1) {
-                        endAlpha = (int) (AlphaValue.MAX * Float.parseFloat(alphaArr[1]));
+                        endAlpha = (int) (AlphaValue.MAX * safeParseFloat(alphaArr[1]));
                     }
-                    long alphaDuraion = (long) (Float.parseFloat(textArr[3]) * 1000);
+                    long alphaDuraion = (long) (safeParseFloat(textArr[3]) * 1000);
                     long translationDuration = alphaDuraion;
                     long translationStartDelay = 0;
                     float rotateY = 0, rotateZ = 0;
                     if (textArr.length >= 7) {
-                        rotateZ = Float.parseFloat(textArr[5]);
-                        rotateY = Float.parseFloat(textArr[6]);
+                        rotateZ = safeParseFloat(textArr[5]);
+                        rotateY = safeParseFloat(textArr[6]);
                     }
                     if (textArr.length >= 11) {
-                        endX = Float.parseFloat(textArr[7]);
-                        endY = Float.parseFloat(textArr[8]);
+                        endX = safeParseFloat(textArr[7]);
+                        endY = safeParseFloat(textArr[8]);
                         if (!"".equals(textArr[9])) {
                             translationDuration = Integer.parseInt(textArr[9]);
                         }
                         if (!"".equals(textArr[10])) {
-                            translationStartDelay = (long) (Float.parseFloat(textArr[10]));
+                            translationStartDelay = (long) (safeParseFloat(textArr[10]));
                         }
                     }
                     item.duration = new Duration(alphaDuraion);
@@ -249,5 +249,14 @@ public class BiliDanmukuParser extends BaseDanmakuParser {
         mDispScaleX = mDispWidth / DanmakuFactory.BILI_PLAYER_WIDTH;
         mDispScaleY = mDispHeight / DanmakuFactory.BILI_PLAYER_HEIGHT;
         return this;
+    }
+
+    private static float safeParseFloat(String s) {
+        if (s == null || s.length() == 0) return 0f;
+        try {
+            return Float.parseFloat(s);
+        } catch (NumberFormatException e) {
+            return 0f;
+        }
     }
 }
