@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import tv.biliclassic.subsettings.DecoderSettingsActivity;
 import tv.biliclassic.util.NetWorkUtil;
@@ -71,6 +73,9 @@ public class SettingsActivity extends BaseActivity {
     private static final int DECODER_SYSTEM = 0;
     private static final int DECODER_IJK = 1;
 
+    // 内置播放器最低系统版本要求 (Android 2.3 / API 9)
+    private static final int MIN_SDK_FOR_BUILTIN = 9;
+
     private TextView cacheSizeText;
     private LinearLayout clearCacheItem;
     private TextView playCacheSizeText;
@@ -100,6 +105,7 @@ public class SettingsActivity extends BaseActivity {
     // 在线播放开关
     private CheckBox checkboxOnlinePlay;
     private LinearLayout onlinePlayItem;
+    private View onlinePlayWarning;
 
     private Handler mainHandler = new Handler();
 
@@ -214,25 +220,67 @@ public class SettingsActivity extends BaseActivity {
             }
         }
 
-        // 在线播放开关
+        // 在线播放开关 - 低版本完全隐藏
         checkboxOnlinePlay = (CheckBox) findViewById(R.id.checkbox_online_play);
         onlinePlayItem = (LinearLayout) findViewById(R.id.online_play_item);
+        onlinePlayWarning = findViewById(R.id.online_play_warning);
 
-        if (checkboxOnlinePlay != null) {
-            boolean onlinePlayEnabled = SharedPreferencesUtil.getBoolean(KEY_ONLINE_PLAY, false);
-            checkboxOnlinePlay.setChecked(onlinePlayEnabled);
-
-            checkboxOnlinePlay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SharedPreferencesUtil.putBoolean(KEY_ONLINE_PLAY, isChecked);
-                    Toast.makeText(SettingsActivity.this,
-                            isChecked ? "已开启在线播放模式" : "已关闭在线播放模式",
-                            Toast.LENGTH_SHORT).show();
+        if (onlinePlayItem != null) {
+            if (!isBuiltinPlayerSupported()) {
+                // 低于 Android 2.3，完全隐藏在线播放相关所有 UI
+                onlinePlayItem.setVisibility(View.GONE);
+                if (onlinePlayWarning != null) {
+                    onlinePlayWarning.setVisibility(View.GONE);
                 }
-            });
+                // 强制关闭在线播放
+                SharedPreferencesUtil.putBoolean(KEY_ONLINE_PLAY, false);
+            } else {
+                onlinePlayItem.setVisibility(View.VISIBLE);
+                if (onlinePlayWarning != null) {
+                    onlinePlayWarning.setVisibility(View.VISIBLE);
+                }
 
-            if (onlinePlayItem != null) {
+                boolean onlinePlayEnabled = SharedPreferencesUtil.getBoolean(KEY_ONLINE_PLAY, false);
+                checkboxOnlinePlay.setChecked(onlinePlayEnabled);
+
+                checkboxOnlinePlay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked) {
+                            int playerPref = getPlayerPreference();
+                            if (playerPref != PLAYER_BUILTIN) {
+                                new AlertDialog.Builder(SettingsActivity.this)
+                                        .setTitle("提示")
+                                        .setMessage("在线播放需要配合内置播放器使用。\n\n是否切换到内置播放器并开启在线播放？")
+                                        .setPositiveButton("切换并开启", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                SharedPreferencesUtil.putInt(KEY_PLAYER_PREFERENCE, PLAYER_BUILTIN);
+                                                updatePlayerChoiceDisplay();
+                                                SharedPreferencesUtil.putBoolean(KEY_ONLINE_PLAY, true);
+                                                checkboxOnlinePlay.setChecked(true);
+                                                Toast.makeText(SettingsActivity.this, "已切换到内置播放器并开启在线播放", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                checkboxOnlinePlay.setChecked(false);
+                                            }
+                                        })
+                                        .show();
+                                return;
+                            }
+
+                            SharedPreferencesUtil.putBoolean(KEY_ONLINE_PLAY, true);
+                            Toast.makeText(SettingsActivity.this, "已开启在线播放模式", Toast.LENGTH_SHORT).show();
+                        } else {
+                            SharedPreferencesUtil.putBoolean(KEY_ONLINE_PLAY, false);
+                            Toast.makeText(SettingsActivity.this, "已关闭在线播放模式", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
                 onlinePlayItem.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -439,6 +487,90 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
+    // 判断设备是否支持内置播放器（IJK V3 需要 Android 2.3+）
+    private static boolean isBuiltinPlayerSupported() {
+        return Build.VERSION.SDK_INT >= MIN_SDK_FOR_BUILTIN;
+    }
+
+    // 获取默认播放器偏好（低版本强制非内置）
+    public static int getDefaultPlayerPreference() {
+        if (!isBuiltinPlayerSupported()) {
+            return PLAYER_AUTO;
+        }
+        return PLAYER_BUILTIN;
+    }
+
+    // 获取当前播放器偏好（带版本适配）
+    public static int getPlayerPreference() {
+        int pref = SharedPreferencesUtil.getInt(KEY_PLAYER_PREFERENCE, getDefaultPlayerPreference());
+        if (pref == PLAYER_BUILTIN && !isBuiltinPlayerSupported()) {
+            SharedPreferencesUtil.putInt(KEY_PLAYER_PREFERENCE, PLAYER_AUTO);
+            return PLAYER_AUTO;
+        }
+        return pref;
+    }
+
+    // 获取播放器显示名称（带低版本提示）
+    public static String getPlayerDisplayName() {
+        int preference = getPlayerPreference();
+        switch (preference) {
+            case PLAYER_AUTO:
+                return "自动检测";
+            case PLAYER_MX_AD:
+                return "MX Player (免费版)";
+            case PLAYER_MX_PRO:
+                return "MX Player (专业版)";
+            case PLAYER_MOBO:
+                return "MoboPlayer";
+            case PLAYER_VLC:
+                return "VLC";
+            case PLAYER_VPLAYER:
+                return "VPlayer";
+            case PLAYER_ROCKPLAYER:
+                return "RockPlaye Liter";
+            case PLAYER_QQPLAYER:
+                return "QQ影音";
+            case PLAYER_BUILTIN:
+                return isBuiltinPlayerSupported() ? "内置播放器" : "内置播放器 (不可用)";
+            case PLAYER_SYSTEM:
+            default:
+                return "系统播放器";
+        }
+    }
+
+    // 获取播放器包名
+    public static String getPlayerPackageName() {
+        int preference = getPlayerPreference();
+        switch (preference) {
+            case PLAYER_MX_AD:
+                return "com.mxtech.videoplayer.ad";
+            case PLAYER_MX_PRO:
+                return "com.mxtech.videoplayer.pro";
+            case PLAYER_MOBO:
+                return "com.clov4r.android.nil";
+            case PLAYER_VLC:
+                return "org.videolan.vlc";
+            case PLAYER_VPLAYER:
+                return "me.abitno.vplayer.t";
+            case PLAYER_ROCKPLAYER:
+                return "com.redirectin.rockplayer.android.unified.lite";
+            case PLAYER_QQPLAYER:
+                return "com.tencent.research.drop";
+            case PLAYER_SYSTEM:
+            case PLAYER_AUTO:
+            default:
+                return null;
+        }
+    }
+
+    public static int getDecoderType() {
+        return SharedPreferencesUtil.getInt(KEY_DECODER_TYPE, DECODER_IJK);
+    }
+
+    public static boolean useBuiltinPlayer() {
+        return SharedPreferencesUtil.getBoolean(KEY_BUILTIN_PLAYER, true);
+    }
+
     // 视频画质选择
     private void showVideoQualityDialog() {
         final String[] qualities = {"360P 流畅", "480P 清晰", "720P 高清"};
@@ -532,80 +664,31 @@ public class SettingsActivity extends BaseActivity {
                 .show();
     }
 
-    // 播放器选择
-    public static String getPlayerPackageName() {
-        int preference = SharedPreferencesUtil.getInt(KEY_PLAYER_PREFERENCE, PLAYER_BUILTIN);
-        switch (preference) {
-            case PLAYER_MX_AD:
-                return "com.mxtech.videoplayer.ad";
-            case PLAYER_MX_PRO:
-                return "com.mxtech.videoplayer.pro";
-            case PLAYER_MOBO:
-                return "com.clov4r.android.nil";
-            case PLAYER_VLC:
-                return "org.videolan.vlc";
-            case PLAYER_VPLAYER:
-                return "me.abitno.vplayer.t";
-            case PLAYER_ROCKPLAYER:
-                return "com.redirectin.rockplayer.android.unified.lite";
-            case PLAYER_QQPLAYER:
-                return "com.tencent.research.drop";
-            case PLAYER_SYSTEM:
-            case PLAYER_AUTO:
-            default:
-                return null;
-        }
-    }
-
-    public static String getPlayerDisplayName() {
-        int preference = SharedPreferencesUtil.getInt(KEY_PLAYER_PREFERENCE, PLAYER_BUILTIN);
-        switch (preference) {
-            case PLAYER_AUTO:
-                return "自动检测";
-            case PLAYER_MX_AD:
-                return "MX Player (免费版)";
-            case PLAYER_MX_PRO:
-                return "MX Player (专业版)";
-            case PLAYER_MOBO:
-                return "MoboPlayer";
-            case PLAYER_VLC:
-                return "VLC";
-            case PLAYER_VPLAYER:
-                return "VPlayer";
-            case PLAYER_ROCKPLAYER:
-                return "RockPlaye Liter";
-            case PLAYER_QQPLAYER:
-                return "QQ影音";
-            case PLAYER_BUILTIN:
-                return "内置播放器";
-            case PLAYER_SYSTEM:
-            default:
-                return "系统播放器";
-        }
-    }
-
-    public static int getPlayerPreference() {
-        return SharedPreferencesUtil.getInt(KEY_PLAYER_PREFERENCE, PLAYER_BUILTIN);
-    }
-
-    private void updatePlayerChoiceDisplay() {
-        String displayName = getPlayerDisplayName();
-        playerChoiceText.setText(displayName);
-    }
-
-    // 内置播放器 + 解码方式
-    public static boolean useBuiltinPlayer() {
-        return SharedPreferencesUtil.getBoolean(KEY_BUILTIN_PLAYER, true);
-    }
-
-    public static int getDecoderType() {
-        return SharedPreferencesUtil.getInt(KEY_DECODER_TYPE, DECODER_IJK);
-    }
-
+    // 播放器选择对话框
     private void showPlayerChoiceDialog() {
-        final String[] players = {"内置播放器", "自动检测", "MX Player (免费版)", "MX Player (专业版)", "MoboPlayer", "VLC", "VPlayer", "RockPlaye Liter", "QQ影音", "系统播放器"};
-        final int[] playerValues = {PLAYER_BUILTIN, PLAYER_AUTO, PLAYER_MX_AD, PLAYER_MX_PRO, PLAYER_MOBO, PLAYER_VLC, PLAYER_VPLAYER, PLAYER_ROCKPLAYER, PLAYER_QQPLAYER, PLAYER_SYSTEM};
-        int currentPreference = SharedPreferencesUtil.getInt(KEY_PLAYER_PREFERENCE, PLAYER_BUILTIN);
+        final String[] allPlayers = {"内置播放器", "自动检测", "MX Player (免费版)", "MX Player (专业版)", "MoboPlayer", "VLC", "VPlayer", "RockPlaye Liter", "QQ影音", "系统播放器"};
+        final int[] allValues = {PLAYER_BUILTIN, PLAYER_AUTO, PLAYER_MX_AD, PLAYER_MX_PRO, PLAYER_MOBO, PLAYER_VLC, PLAYER_VPLAYER, PLAYER_ROCKPLAYER, PLAYER_QQPLAYER, PLAYER_SYSTEM};
+
+        // 低版本过滤掉内置播放器
+        ArrayList filteredPlayers = new ArrayList();
+        ArrayList filteredValues = new ArrayList();
+
+        for (int i = 0; i < allPlayers.length; i++) {
+            // 低版本跳过内置播放器
+            if (allValues[i] == PLAYER_BUILTIN && !isBuiltinPlayerSupported()) {
+                continue;
+            }
+            filteredPlayers.add(allPlayers[i]);
+            filteredValues.add(Integer.valueOf(allValues[i]));
+        }
+
+        final String[] players = (String[]) filteredPlayers.toArray(new String[filteredPlayers.size()]);
+        final int[] playerValues = new int[filteredValues.size()];
+        for (int i = 0; i < filteredValues.size(); i++) {
+            playerValues[i] = ((Integer) filteredValues.get(i)).intValue();
+        }
+
+        int currentPreference = getPlayerPreference();
 
         int checkedIndex = 0;
         for (int i = 0; i < playerValues.length; i++) {
@@ -640,6 +723,11 @@ public class SettingsActivity extends BaseActivity {
                 .show();
     }
 
+    private void updatePlayerChoiceDisplay() {
+        String displayName = getPlayerDisplayName();
+        playerChoiceText.setText(displayName);
+    }
+
     private void updateDecoderChoiceDisplay() {
         int decoder = getDecoderType();
         decoderChoiceText.setText(decoder == DECODER_IJK ? "IJK V3 软解" : "系统硬解");
@@ -670,6 +758,7 @@ public class SettingsActivity extends BaseActivity {
                 .show();
     }
 
+    // 图片加载线程
     private void updateImageThreadDisplay(TextView textView) {
         if (textView == null) return;
         int threads = SharedPreferencesUtil.getInt(SharedPreferencesUtil.IMAGE_LOAD_THREADS, 1);

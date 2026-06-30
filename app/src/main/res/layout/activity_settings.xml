@@ -281,6 +281,7 @@
                         android:textColor="#333333" />
 
                     <TextView
+                        android:id="@+id/online_play_desc"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
@@ -303,6 +304,7 @@
             </LinearLayout>
 
             <TextView
+                android:id="@+id/online_play_warning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"

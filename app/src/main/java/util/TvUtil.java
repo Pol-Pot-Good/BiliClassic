@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.util.Log;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public class TvUtil {
 
@@ -21,7 +22,7 @@ public class TvUtil {
         PackageManager pm = context.getPackageManager();
 
         // 1. 检测 FEATURE_TELEVISION
-        boolean hasTV = hasFeature(pm, "FEATURE_TELEVISION");
+        boolean hasTV = hasSystemFeature(pm, "FEATURE_TELEVISION");
         Log.d(TAG, "FEATURE_TELEVISION: " + hasTV);
         if (hasTV) {
             Log.d(TAG, "isTv: 检测到 FEATURE_TELEVISION，返回 true");
@@ -29,7 +30,7 @@ public class TvUtil {
         }
 
         // 2. 检测 FEATURE_LEANBACK
-        boolean hasLeanback = hasFeature(pm, "FEATURE_LEANBACK");
+        boolean hasLeanback = hasSystemFeature(pm, "FEATURE_LEANBACK");
         Log.d(TAG, "FEATURE_LEANBACK: " + hasLeanback);
         if (hasLeanback) {
             Log.d(TAG, "isTv: 检测到 FEATURE_LEANBACK，返回 true");
@@ -37,8 +38,8 @@ public class TvUtil {
         }
 
         // 3. 没有触摸屏 + 有键盘 = 可能是电视
-        boolean hasTouch = hasFeature(pm, "FEATURE_TOUCHSCREEN");
-        boolean hasKeyboard = hasFeature(pm, "FEATURE_KEYBOARD");
+        boolean hasTouch = hasSystemFeature(pm, "FEATURE_TOUCHSCREEN");
+        boolean hasKeyboard = hasSystemFeature(pm, "FEATURE_KEYBOARD");
         Log.d(TAG, "FEATURE_TOUCHSCREEN: " + hasTouch + ", FEATURE_KEYBOARD: " + hasKeyboard);
 
         if (!hasTouch && hasKeyboard) {
@@ -50,30 +51,39 @@ public class TvUtil {
         return false;
     }
 
-    // 反射检测系统特征
-    private static boolean hasFeature(PackageManager pm, String featureName) {
+    // 反射检测系统特征（兼容 Android 2.2）
+    private static boolean hasSystemFeature(PackageManager pm, String featureName) {
         try {
+            // 先获取 feature 常量值
             Field field = PackageManager.class.getField(featureName);
             String feature = (String) field.get(null);
-            boolean result = pm.hasSystemFeature(feature);
-            Log.d(TAG, "hasFeature: " + featureName + " = " + result);
-            return result;
+
+            // 再用反射调用 hasSystemFeature
+            Method method = PackageManager.class.getMethod("hasSystemFeature", String.class);
+            Boolean result = (Boolean) method.invoke(pm, feature);
+            Log.d(TAG, "hasSystemFeature: " + featureName + " = " + result);
+            return result != null && result.booleanValue();
+
         } catch (NoSuchFieldException e) {
-            Log.d(TAG, "hasFeature: " + featureName + " 字段不存在");
+            Log.d(TAG, "hasSystemFeature: " + featureName + " 字段不存在");
+            return false;
+        } catch (NoSuchMethodException e) {
+            // Android 2.2 没有 hasSystemFeature 方法，直接返回 false
+            Log.d(TAG, "hasSystemFeature: hasSystemFeature 方法不存在 (Android 2.2 及以下)");
             return false;
         } catch (Exception e) {
-            Log.d(TAG, "hasFeature: " + featureName + " 检测异常 - " + e.getMessage());
+            Log.d(TAG, "hasSystemFeature: " + featureName + " 检测异常 - " + e.getMessage());
             return false;
         }
     }
 
     public static boolean isLeanbackSupported(Context context) {
         PackageManager pm = context.getPackageManager();
-        return hasFeature(pm, "FEATURE_LEANBACK");
+        return hasSystemFeature(pm, "FEATURE_LEANBACK");
     }
 
     public static boolean isTouchScreen(Context context) {
         PackageManager pm = context.getPackageManager();
-        return hasFeature(pm, "FEATURE_TOUCHSCREEN");
+        return hasSystemFeature(pm, "FEATURE_TOUCHSCREEN");
     }
 }
