@@ -29,6 +29,7 @@ import java.io.FileOutputStream;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,6 +42,7 @@ import java.util.regex.Matcher;
 
 import tv.biliclassic.download.VideoDownloadEntry;
 import tv.biliclassic.download.VideoDownloadEnvironment;
+import tv.biliclassic.download.VideoDownloadService;
 import tv.biliclassic.util.SharedPreferencesUtil;
 import tv.biliclassic.player.BiliPlayerActivity;
 
@@ -64,6 +66,7 @@ public class OfflineActivity extends BaseActivity {
     private Handler mRefreshHandler = new Handler();
     private Runnable mRefreshRunnable;
     private static final int REFRESH_INTERVAL = 2000;
+    private HashSet<Long> mPausedKeys = new HashSet<Long>();
 
     private boolean isLowMemoryDevice() {
         int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
@@ -877,7 +880,32 @@ public class OfflineActivity extends BaseActivity {
 
                 if (holder.btnPlay != null) {
                     if (!item.isCompleted) {
-                        holder.btnPlay.setVisibility(View.GONE);
+                        final long itemKey = item.getKey();
+                        final boolean isPaused = mPausedKeys.contains(itemKey);
+                        holder.btnPlay.setVisibility(View.VISIBLE);
+                        holder.btnPlay.setImageResource(isPaused
+                                ? android.R.drawable.ic_media_play
+                                : android.R.drawable.ic_media_pause);
+                        holder.btnPlay.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (mPausedKeys.contains(itemKey)) {
+                                    mPausedKeys.remove(itemKey);
+                                    Intent intent = new Intent(OfflineActivity.this,
+                                            VideoDownloadService.class);
+                                    intent.setAction(VideoDownloadService.ACTION_RESUME);
+                                    intent.putExtra("key", itemKey);
+                                    startService(intent);
+                                } else {
+                                    mPausedKeys.add(itemKey);
+                                    Intent intent = new Intent(OfflineActivity.this,
+                                            VideoDownloadService.class);
+                                    intent.setAction(VideoDownloadService.ACTION_PAUSE);
+                                    startService(intent);
+                                }
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
                     } else {
                         holder.btnPlay.setVisibility(View.VISIBLE);
                         holder.btnPlay.setImageResource(R.drawable.ic_btn_av_play_chroma);
@@ -928,6 +956,10 @@ public class OfflineActivity extends BaseActivity {
         List<String> pages;
         List<File> pagesFile;
         int totalPageCount;
+
+        long getKey() {
+            return (avid << 32) | (page & 0xFFFFFFFFL);
+        }
 
         String getCacheKey() {
             if (env != null) return env.avid + "/" + env.page;
