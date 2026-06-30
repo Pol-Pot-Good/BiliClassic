@@ -908,6 +908,7 @@ public class OfflineActivity extends BaseActivity {
                             public void onClick(View v) {
                                 if (item.isPaused) {
                                     item.isPaused = false;
+                                    saveItemPaused(item, false);
                                     Intent intent = new Intent(OfflineActivity.this,
                                             VideoDownloadService.class);
                                     intent.setAction(VideoDownloadService.ACTION_RESUME);
@@ -915,9 +916,11 @@ public class OfflineActivity extends BaseActivity {
                                     startService(intent);
                                 } else {
                                     item.isPaused = true;
+                                    saveItemPaused(item, true);
                                     Intent intent = new Intent(OfflineActivity.this,
                                             VideoDownloadService.class);
                                     intent.setAction(VideoDownloadService.ACTION_PAUSE);
+                                    intent.putExtra("key", itemKey);
                                     startService(intent);
                                 }
                                 adapter.notifyDataSetChanged();
@@ -983,6 +986,19 @@ public class OfflineActivity extends BaseActivity {
             if (env != null) return env.avid + "/" + env.page;
             if (title != null) return title;
             return String.valueOf(System.identityHashCode(this));
+        }
+    }
+
+    private void saveItemPaused(OfflineItem item, boolean paused) {
+        if (item.env == null) return;
+        try {
+            VideoDownloadEntry entry = item.env.loadEntry();
+            if (entry != null) {
+                entry.isPaused = paused;
+                item.env.saveEntry(entry);
+            }
+        } catch (Exception e) {
+            // ignore
         }
     }
 }

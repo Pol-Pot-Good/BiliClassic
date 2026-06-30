@@ -45,7 +45,11 @@ public class VideoDownloadService extends Service {
 
         String action = intent.getAction();
         if (ACTION_PAUSE.equals(action)) {
-            if (mDownloadManager != null) mDownloadManager.pauseCurrent();
+            long key = intent.getLongExtra("key", 0);
+            if (mDownloadManager != null) {
+                if (key != 0) mDownloadManager.pauseByKey(key);
+                else mDownloadManager.pauseCurrent();
+            }
             return START_NOT_STICKY;
         }
         if (ACTION_RESUME.equals(action)) {
@@ -167,7 +171,10 @@ public class VideoDownloadService extends Service {
         for (VideoDownloadEntry entry : allEntries) {
             if (entry.getKey() == key && !entry.isCompleted
                     && entry.videoUrl != null && entry.videoUrl.length() > 0) {
+                // 防止重复提交已在队列或下载中的任务
+                if (mDownloadManager.hasTask(key)) return;
                 entry.state = VideoDownloadEntry.STATE_IN_QUEUE;
+                entry.isPaused = false;
                 mDownloadManager.submit(entry, entry.videoUrl);
                 return;
             }
