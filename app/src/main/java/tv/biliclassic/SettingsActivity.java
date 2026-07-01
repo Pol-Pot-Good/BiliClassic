@@ -162,23 +162,15 @@ public class SettingsActivity extends BaseActivity {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     SharedPreferencesUtil.putBoolean(KEY_LANDSCAPE_ENABLED, isChecked);
 
-                    if (isLandscapeDevice()) {
-                        String tip = isChecked ? "已开启横屏模式，正在重启..." : "已关闭横屏模式，正在重启...";
-                        Toast.makeText(SettingsActivity.this, tip, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SettingsActivity.this,
+                            isChecked ? "已开启横屏模式，正在重启..." : "已关闭横屏模式，正在重启...",
+                            Toast.LENGTH_SHORT).show();
 
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(intent);
-                                finish();
-                                System.exit(0);
-                            }
-                        }, 500);
-                    } else {
-                        Toast.makeText(SettingsActivity.this, "设置已保存，重启后生效", Toast.LENGTH_SHORT).show();
-                    }
+                    // 重启所有 Activity
+                    Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
                 }
             });
 

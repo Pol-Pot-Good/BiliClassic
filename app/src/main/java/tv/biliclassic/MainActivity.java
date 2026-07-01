@@ -3,6 +3,7 @@ package tv.biliclassic;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -34,6 +35,7 @@ public class MainActivity extends BaseActivity {
 
     private static final String KEY_LANDSCAPE_TIP_SHOWN = "landscape_tip_shown";
     private static final String KEY_AUTO_CHECK_UPDATE = "auto_check_update";
+    private static final String KEY_TV_UNSUPPORTED_SHOWN = "tv_unsupported_shown";
     private static final int TIP_DELAY_MS = 1500;
     private static final long AUTO_CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 
@@ -62,16 +64,48 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    // 兼容 Android 1.6 获取 SDK 版本
+    private int getSdkInt() {
+        try {
+            java.lang.reflect.Field field = android.os.Build.VERSION.class.getField("SDK_INT");
+            return field.getInt(null);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field field = android.os.Build.VERSION.class.getField("SDK");
+                return Integer.parseInt(field.get(null).toString());
+            } catch (Exception ex) {
+                return 0;
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 检测 TV 模式
-        if (tv.biliclassic.tv.util.TvUtil.isTv(this)) {
+        int sdkInt = getSdkInt();
+
+        // Android 4.0+ 正常检测 TV 模式
+        if (sdkInt >= 14 && tv.biliclassic.tv.util.TvUtil.isTv(this)) {
             Intent intent = new Intent(this, tv.biliclassic.tv.TvMainActivity.class);
             startActivity(intent);
             finish();
             return;
+        }
+
+        // Android 4.0 以下：如果有 TV 标志或强制模式，强制横屏但不进入 TV UI
+        if (sdkInt < 14) {
+            boolean tvModeEnabled = tv.biliclassic.tv.util.TvUtil.isTv(this);
+            if (tvModeEnabled) {
+                // 强制横屏
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                // 只显示一次提示
+                boolean alreadyShown = SharedPreferencesUtil.getBoolean(KEY_TV_UNSUPPORTED_SHOWN, false);
+                if (!alreadyShown) {
+                    Toast.makeText(this, "TV模式需要 Android 4.0 及以上系统\n已为您自动切换为横屏模式", Toast.LENGTH_LONG).show();
+                    SharedPreferencesUtil.putBoolean(KEY_TV_UNSUPPORTED_SHOWN, true);
+                }
+            }
         }
 
         setContentView(R.layout.activity_main);
@@ -104,7 +138,6 @@ public class MainActivity extends BaseActivity {
         addTab("推荐视频", RecommendFragment.class);
         addTab("关于我们", AboutFragment.class);
 
-        // 从 Intent 获取默认 Tab（用于 TV 跳转）
         int targetTab = getIntent().getIntExtra("tab_index", -1);
         if (targetTab >= 0 && targetTab < mFragments.size()) {
             mPager.setCurrentItem(targetTab);

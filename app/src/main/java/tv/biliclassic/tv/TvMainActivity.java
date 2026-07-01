@@ -5,11 +5,11 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import tv.biliclassic.FavoriteFolderListActivity;
 import tv.biliclassic.HistoryActivity;
 import tv.biliclassic.LoginActivity;
 import tv.biliclassic.MainActivity;
@@ -25,13 +25,25 @@ public class TvMainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 获取 SDK 版本（兼容 Android 1.6）
+        int sdkInt = getSdkInt();
+        if (sdkInt < 14) {
+            Toast.makeText(this, "TV模式需要 Android 4.0 及以上系统", Toast.LENGTH_LONG).show();
+            // 跳转到普通 MainActivity
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_tv_main);
 
         gridView = (GridView) findViewById(R.id.grid_tiles);
         adapter = new TvGridAdapter(this);
         gridView.setAdapter(adapter);
 
-        // 注册点击监听
         adapter.setOnTileClickListener(new TvGridAdapter.OnTileClickListener() {
             @Override
             public void onTileClick(String label) {
@@ -39,41 +51,16 @@ public class TvMainActivity extends FragmentActivity {
             }
         });
 
-        // OnItemClickListener 备用
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String label = adapter.getItem(position);
-                handleTileClick(label);
-            }
-        });
-
-        // OnKeyListener 拦截 ENTER
-        gridView.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.getAction() == KeyEvent.ACTION_UP) {
-                    int pos = gridView.getSelectedItemPosition();
-                    if (pos >= 0) {
-                        String label = adapter.getItem(pos);
-                        handleTileClick(label);
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
-
-        // 设置入口
         TextView tvSettings = (TextView) findViewById(R.id.tv_settings);
-        tvSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(TvMainActivity.this, TvSettingsActivity.class));
-            }
-        });
+        if (tvSettings != null) {
+            tvSettings.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(TvMainActivity.this, TvSettingsActivity.class));
+                }
+            });
+        }
 
-        // 让第一个磁贴获得焦点
         gridView.post(new Runnable() {
             @Override
             public void run() {
@@ -84,35 +71,34 @@ public class TvMainActivity extends FragmentActivity {
         });
     }
 
-    private void handleTileClick(String label) {
-        if (label == null) return;
+    // 兼容 Android 1.6 获取 SDK 版本
+    private int getSdkInt() {
+        try {
+            java.lang.reflect.Field field = android.os.Build.VERSION.class.getField("SDK_INT");
+            return field.getInt(null);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field field = android.os.Build.VERSION.class.getField("SDK");
+                return Integer.parseInt(field.get(null).toString());
+            } catch (Exception ex) {
+                return 0;
+            }
+        }
+    }
 
-        // 加 Toast 确认点击触发
-        Toast.makeText(this, "点击: " + label, Toast.LENGTH_SHORT).show();
-
-        if (label.equals("登录")) {
-            startActivity(new Intent(this, LoginActivity.class));
-        } else if (label.equals("推荐")) {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("tab_index", 4);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-        } else if (label.equals("时间线")) {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("tab_index", 3);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-        } else if (label.equals("分区")) {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("tab_index", 1);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-        } else if (label.equals("搜索")) {
-            startActivity(new Intent(this, SearchActivity.class));
-        } else if (label.equals("历史")) {
-            startActivity(new Intent(this, HistoryActivity.class));
-        } else if (label.equals("设置")) {
-            startActivity(new Intent(this, TvSettingsActivity.class));
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (gridView != null) {
+            gridView.post(new Runnable() {
+                @Override
+                public void run() {
+                    gridView.requestFocus();
+                    if (gridView.getChildCount() > 0) {
+                        gridView.getChildAt(0).requestFocus();
+                    }
+                }
+            });
         }
     }
 
@@ -123,5 +109,25 @@ public class TvMainActivity extends FragmentActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void handleTileClick(String label) {
+        if (label == null) return;
+
+        if (label.equals("登录")) {
+            startActivity(new Intent(this, LoginActivity.class));
+        } else if (label.equals("推荐")) {
+            startActivity(new Intent(this, MainActivity.class));
+        } else if (label.equals("时间线")) {
+            startActivity(new Intent(this, MainActivity.class));
+        } else if (label.equals("收藏")) {
+            startActivity(new Intent(this, FavoriteFolderListActivity.class));
+        } else if (label.equals("搜索")) {
+            startActivity(new Intent(this, SearchActivity.class));
+        } else if (label.equals("历史")) {
+            startActivity(new Intent(this, HistoryActivity.class));
+        } else if (label.equals("设置")) {
+            startActivity(new Intent(this, TvSettingsActivity.class));
+        }
     }
 }

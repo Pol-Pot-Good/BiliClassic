@@ -13,8 +13,8 @@ android {
         applicationId "tv.biliclassic"
         minSdkVersion 4
         targetSdkVersion 17
-        versionCode 4000
-        versionName "0.4.0-alpha"
+        versionCode 3995
+        versionName "0.4.0-beta"
     }
 
     buildTypes {

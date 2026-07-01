@@ -249,6 +249,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:text="https://github.com/qidian55/bilibilitv1.6.6-repair"
+            android:textColor="#CCCCCC"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_open_source_4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="https://github.com/bilibili/DanmakuFlameMaster"
+            android:textColor="#CCCCCC"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_open_source_5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
             android:text="https://github.com/bilibili-plugins/bilibili-api-collect"
             android:textColor="#CCCCCC"
             android:textSize="12sp" />

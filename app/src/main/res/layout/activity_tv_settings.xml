@@ -6,7 +6,9 @@
     android:background="#0D1B2A"
     android:padding="16dp"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <!-- 标题 -->
     <LinearLayout
@@ -39,7 +41,7 @@
 
     </LinearLayout>
 
-    <!-- ScrollView：可以滚动，不拦截焦点 -->
+    <!-- ScrollView -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -47,7 +49,9 @@
         android:fillViewport="true"
         android:descendantFocusability="afterDescendants"
         android:focusable="false"
-        android:focusableInTouchMode="false">
+        android:focusableInTouchMode="false"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -65,8 +69,8 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true" />
 
@@ -81,8 +85,8 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true" />
 
@@ -97,8 +101,8 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true" />
 
@@ -113,8 +117,8 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true" />
 
@@ -126,8 +130,8 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true">
 
@@ -179,8 +183,8 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true" />
 
@@ -195,8 +199,8 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
-                android:layout_marginBottom="8dp"
+                android:padding="20dp"
+                android:layout_marginBottom="12dp"
                 android:focusable="true"
                 android:clickable="true" />
 
@@ -211,7 +215,7 @@
                 android:fontFamily="sans-serif-light"
                 android:textStyle="normal"
                 android:background="@drawable/tv_tile_bg"
-                android:padding="16dp"
+                android:padding="20dp"
                 android:focusable="true"
                 android:clickable="true" />
 

@@ -2,7 +2,10 @@ package tv.biliclassic.tv.util;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -19,9 +22,19 @@ public class TvUtil {
             return true;
         }
 
+        // 检测 Android 版本
+        int sdkInt = getSdkInt();
+        Log.d(TAG, "SDK_INT: " + sdkInt);
+
+        // Android 4.0 (API 14) 以下不支持 TV 模式
+        if (sdkInt < 14) {
+            Log.d(TAG, "isTv: Android 4.0 以下，不支持 TV 模式");
+            return false;
+        }
+
         PackageManager pm = context.getPackageManager();
 
-        // 1. 检测 FEATURE_TELEVISION
+        // 1. 检测 FEATURE_TELEVISION (API 11+)
         boolean hasTV = hasSystemFeature(pm, "FEATURE_TELEVISION");
         Log.d(TAG, "FEATURE_TELEVISION: " + hasTV);
         if (hasTV) {
@@ -29,7 +42,7 @@ public class TvUtil {
             return true;
         }
 
-        // 2. 检测 FEATURE_LEANBACK
+        // 2. 检测 FEATURE_LEANBACK (API 14+)
         boolean hasLeanback = hasSystemFeature(pm, "FEATURE_LEANBACK");
         Log.d(TAG, "FEATURE_LEANBACK: " + hasLeanback);
         if (hasLeanback) {
@@ -51,29 +64,50 @@ public class TvUtil {
         return false;
     }
 
+    // 获取 SDK_INT，兼容 Android 2.2
+    private static int getSdkInt() {
+        try {
+            Field field = Build.VERSION.class.getField("SDK_INT");
+            return field.getInt(null);
+        } catch (Exception e) {
+            // Android 2.2 及以下没有 SDK_INT，使用 VERSION.SDK
+            try {
+                Field field = Build.VERSION.class.getField("SDK");
+                return Integer.parseInt(field.get(null).toString());
+            } catch (Exception ex) {
+                return 0;
+            }
+        }
+    }
+
     // 反射检测系统特征（兼容 Android 2.2）
     private static boolean hasSystemFeature(PackageManager pm, String featureName) {
         try {
-            // 先获取 feature 常量值
             Field field = PackageManager.class.getField(featureName);
             String feature = (String) field.get(null);
 
-            // 再用反射调用 hasSystemFeature
             Method method = PackageManager.class.getMethod("hasSystemFeature", String.class);
             Boolean result = (Boolean) method.invoke(pm, feature);
-            Log.d(TAG, "hasSystemFeature: " + featureName + " = " + result);
             return result != null && result.booleanValue();
 
         } catch (NoSuchFieldException e) {
             Log.d(TAG, "hasSystemFeature: " + featureName + " 字段不存在");
             return false;
         } catch (NoSuchMethodException e) {
-            // Android 2.2 没有 hasSystemFeature 方法，直接返回 false
             Log.d(TAG, "hasSystemFeature: hasSystemFeature 方法不存在 (Android 2.2 及以下)");
             return false;
         } catch (Exception e) {
             Log.d(TAG, "hasSystemFeature: " + featureName + " 检测异常 - " + e.getMessage());
             return false;
+        }
+    }
+
+    // 显示 Toast
+    private static void showToast(Context context, String msg) {
+        try {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Log.e(TAG, "showToast 失败: " + e.getMessage());
         }
     }
 
