@@ -56,8 +56,7 @@
 - 纯 Java 6 实现，兼容古早 Dalvik 虚拟机
 - 参考 Bilibili 官方 API 文档实现数据获取
 - WBI 签名算法已适配，登录、下载、播放一条龙
-- 二维码生成使用 SwetakeQRCode 魔改（纯 Java 实现，兼容 Android 1.6）
-- 二维码绘制支持硬件加速检测（Canvas / EGL 迫真方法 / setPixels 兼容）
+- 二维码生成使用 SwetakeQRCode 魔改
 
 ---
 

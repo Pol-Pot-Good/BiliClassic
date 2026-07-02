@@ -13,6 +13,7 @@
 
     <application
         android:name=".BiliApplication"
+        android:hardwareAccelerated="true"
         android:allowBackup="true"
         android:largeHeap="true"
         android:icon="@drawable/ic_launcher"

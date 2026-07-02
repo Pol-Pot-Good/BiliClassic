@@ -15,14 +15,38 @@ import java.util.Arrays;
 public class QRCodeUtil {
 
     private static final String TAG = "QRCodeUtil";
+    private static boolean sQrcodeInited = false;
 
-    // 缓存像素数组
+    // 缓存像素数组 (setPixels 用)
     private static int[] sCachedPixels;
     private static int sCachedWidth;
     private static int sCachedHeight;
 
+    // 缓存黑色像素行 (setPixels 用)
+    private static int[] sCachedBlackRow;
+    private static int sCachedBlackRowSize;
+
+    // 缓存 Bitmap (Canvas 用)
+    private static Bitmap sCachedBitmap;
+    private static int sCachedBitmapWidth;
+    private static int sCachedBitmapHeight;
+
+    // 在 Application 中调用一次
+    public static void init(Context context) {
+        if (!sQrcodeInited) {
+            Qrcode.init(context);
+            sQrcodeInited = true;
+            Log.d(TAG, "Qrcode 初始化完成");
+        }
+    }
+
     public static Bitmap createQRCodeBitmap(Context context, String content, int width, int height) {
-        Qrcode.init(context);
+        // 如果没初始化，自动初始化
+        if (!sQrcodeInited) {
+            Qrcode.init(context);
+            sQrcodeInited = true;
+            Log.d(TAG, "Qrcode 自动初始化完成");
+        }
 
         if (content == null || content.length() == 0) {
             Log.w(TAG, "内容为空");
@@ -60,13 +84,15 @@ public class QRCodeUtil {
             if (offsetX < 0) offsetX = 0;
             if (offsetY < 0) offsetY = 0;
 
-            boolean isHardwareAccelerated = isHardwareAccelerationSupported();
+            int sdkInt = getSDKInt();
 
             Bitmap result = null;
             long startTime = System.currentTimeMillis();
 
-            if (isHardwareAccelerated) {
-                Log.d(TAG, "检测到硬件加速支持，尝试 Canvas 绘制策略");
+            // API 14+ 使用 Canvas drawRect 方案（利用硬件加速）
+            // API < 14 使用 setPixels 方案（更稳定）
+            if (sdkInt >= 14) {
+                Log.d(TAG, "API " + sdkInt + "，尝试 Canvas 绘制策略");
                 result = drawWithCanvas(code, codeSize, moduleSize, offsetX, offsetY, margin, width, height);
                 if (result != null) {
                     Log.d(TAG, "Canvas 绘制成功 (耗时: " + (System.currentTimeMillis() - startTime) + "ms)");
@@ -74,7 +100,7 @@ public class QRCodeUtil {
                 }
                 Log.w(TAG, "Canvas 绘制失败，回退到 setPixels 策略");
             } else {
-                Log.d(TAG, "未检测到硬件加速，直接使用 setPixels 策略");
+                Log.d(TAG, "API " + sdkInt + "，直接使用 setPixels 策略");
             }
 
             Log.d(TAG, "执行 setPixels 绘制策略");
@@ -93,12 +119,13 @@ public class QRCodeUtil {
         }
     }
 
-    // 方案一：Canvas.drawRect() 绘制（硬件加速）
+    // 方案一：Canvas.drawRect() 绘制（硬件加速 + Bitmap 缓存）
     private static Bitmap drawWithCanvas(boolean[][] code, int codeSize, int moduleSize,
                                          int offsetX, int offsetY, int margin,
                                          int width, int height) {
         try {
-            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            // 复用 Bitmap
+            Bitmap bitmap = getCachedBitmap(width, height);
             Canvas canvas = new Canvas(bitmap);
             canvas.drawColor(Color.WHITE);
 
@@ -140,7 +167,7 @@ public class QRCodeUtil {
         }
     }
 
-    // 方案二：setPixels 批量写入（兼容模式）
+    // 方案二：setPixels 批量写入（像素数组缓存 + 黑色行缓存）
     private static Bitmap drawWithSetPixels(boolean[][] code, int codeSize, int moduleSize,
                                             int offsetX, int offsetY, int margin,
                                             int width, int height) {
@@ -153,14 +180,11 @@ public class QRCodeUtil {
             int white = Color.WHITE;
             int black = Color.BLACK;
 
-            // 用 Arrays.fill 填充白色
+            // 使用 Arrays.fill 填充白色
             Arrays.fill(pixels, white);
 
-            // 预计算黑色像素行
-            int[] blackRow = new int[moduleSize];
-            for (int i = 0; i < moduleSize; i++) {
-                blackRow[i] = black;
-            }
+            // 复用黑色像素行
+            int[] blackRow = getCachedBlackRow(moduleSize, black);
 
             int blackCount = 0;
             int maxX = width;
@@ -173,12 +197,16 @@ public class QRCodeUtil {
                         int startX = offsetX + margin + x * moduleSize;
                         int startY = offsetY + margin + y * moduleSize;
 
-                        if (startX >= maxX || startY >= maxY) continue;
+                        if (startX >= maxX || startY >= maxY) {
+                            continue;
+                        }
                         int actualLen = Math.min(rowLen, maxX - startX);
 
                         for (int dy = 0; dy < moduleSize; dy++) {
                             int py = startY + dy;
-                            if (py >= maxY) break;
+                            if (py >= maxY) {
+                                break;
+                            }
                             int baseIdx = py * width + startX;
                             System.arraycopy(blackRow, 0, pixels, baseIdx, actualLen);
                         }
@@ -197,17 +225,15 @@ public class QRCodeUtil {
         }
     }
 
-    // 获取缓存的像素数组
+    // 获取缓存的像素数组 (setPixels 用)
     private static synchronized int[] getCachedPixels(int width, int height) {
         int size = width * height;
         if (sCachedPixels == null || sCachedPixels.length < size) {
-            // 数组不够大，重新分配
             sCachedPixels = new int[size];
             sCachedWidth = width;
             sCachedHeight = height;
             Log.d(TAG, "分配新像素数组: " + size + " 个元素");
         } else if (sCachedWidth != width || sCachedHeight != height) {
-            // 尺寸变了，但数组够大，更新记录
             sCachedWidth = width;
             sCachedHeight = height;
             Log.d(TAG, "复用像素数组，尺寸变更: " + width + "x" + height);
@@ -217,66 +243,43 @@ public class QRCodeUtil {
         return sCachedPixels;
     }
 
-    /**
-     * 检测硬件加速是否真正可用
-     *
-     * 检测策略：
-     *   - Android 2.3 (API 10) 及以下：无硬件加速，直接返回 false
-     *   - Android 4.0 (API 14) 及以上：使用 Canvas.isHardwareAccelerated() 正经方法
-     *   - Android 3.0-3.2 (API 11-13)：使用 EGL 迫真方法检测 GPU 是否存在
-     *
-     * 迫真方法原理：
-     *   EGL 是 OpenGL ES 和底层窗口系统之间的接口，存在 EGL 说明设备有 GPU。
-     *   通过反射调用 EGLContext.getEGL()，如果返回非 null 说明有 GPU。
-     */
-    private static boolean isHardwareAccelerationSupported() {
+    // 获取缓存的黑色像素行 (setPixels 用)
+    private static synchronized int[] getCachedBlackRow(int moduleSize, int black) {
+        if (sCachedBlackRow == null || sCachedBlackRowSize != moduleSize) {
+            sCachedBlackRow = new int[moduleSize];
+            sCachedBlackRowSize = moduleSize;
+            for (int i = 0; i < moduleSize; i++) {
+                sCachedBlackRow[i] = black;
+            }
+            Log.d(TAG, "分配黑色像素行: " + moduleSize + " 个元素");
+        } else {
+            Log.d(TAG, "复用黑色像素行: " + moduleSize + " 个元素");
+        }
+        return sCachedBlackRow;
+    }
+
+    // 获取缓存的 Bitmap (Canvas 用)
+    private static synchronized Bitmap getCachedBitmap(int width, int height) {
+        if (sCachedBitmap == null || sCachedBitmapWidth != width || sCachedBitmapHeight != height) {
+            sCachedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            sCachedBitmapWidth = width;
+            sCachedBitmapHeight = height;
+            Log.d(TAG, "分配新 Bitmap: " + width + "x" + height);
+        } else {
+            Log.d(TAG, "复用 Bitmap: " + width + "x" + height);
+        }
+        return sCachedBitmap;
+    }
+
+    // 获取 SDK_INT，兼容所有版本
+    private static int getSDKInt() {
         try {
-            int sdkInt = 0;
-            try {
-                Class<?> versionClass = Class.forName("android.os.Build$VERSION");
-                java.lang.reflect.Field sdkField = versionClass.getField("SDK_INT");
-                sdkInt = sdkField.getInt(null);
-            } catch (Throwable t) {
-                Log.d(TAG, "无法获取 SDK_INT，判定为 Android 1.6 或更早");
-                return false;
-            }
-
-            if (sdkInt < 11) {
-                Log.d(TAG, "SDK_INT=" + sdkInt + "，低于 3.0，无硬件加速");
-                return false;
-            }
-
-            // Android 4.0+：官方 API
-            if (sdkInt >= 14) {
-                try {
-                    Bitmap testBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.RGB_565);
-                    Canvas testCanvas = new Canvas(testBitmap);
-                    java.lang.reflect.Method method = Canvas.class.getMethod("isHardwareAccelerated");
-                    boolean isAccelerated = ((Boolean) method.invoke(testCanvas)).booleanValue();
-                    testBitmap.recycle();
-                    Log.d(TAG, "SDK_INT=" + sdkInt + "，Canvas.isHardwareAccelerated()=" + isAccelerated);
-                    return isAccelerated;
-                } catch (Throwable t) {
-                    Log.w(TAG, "4.0+ 正经检测失败: " + t.getMessage() + "，降级到迫真方法");
-                }
-            }
-
-            // Android 3.0-3.2：EGL 迫真检测
-            try {
-                Class<?> eglContextClass = Class.forName("javax.microedition.khronos.egl.EGLContext");
-                java.lang.reflect.Method getEGLMethod = eglContextClass.getMethod("getEGL");
-                Object egl = getEGLMethod.invoke(null);
-                boolean hasGpu = (egl != null);
-                Log.d(TAG, "SDK_INT=" + sdkInt + "，EGL 迫真检测: " + (hasGpu ? "存在 GPU" : "无 GPU"));
-                return hasGpu;
-            } catch (Throwable t) {
-                Log.d(TAG, "EGL 迫真检测失败: " + t.getMessage());
-                return false;
-            }
-
+            Class<?> versionClass = Class.forName("android.os.Build$VERSION");
+            java.lang.reflect.Field sdkField = versionClass.getField("SDK_INT");
+            return sdkField.getInt(null);
         } catch (Throwable t) {
-            Log.e(TAG, "硬件加速检测异常，默认使用 setPixels: " + t.getMessage());
-            return false;
+            Log.d(TAG, "无法获取 SDK_INT，默认 API 1");
+            return 1;
         }
     }
 }
