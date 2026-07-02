@@ -1,5 +1,7 @@
 # BiliClassic - 安卓2也要看B站！
 
+<img width="1366" height="767" alt="Android 2" src="https://github.com/user-attachments/assets/52277284-e776-496c-886d-12351b15cc00" />
+
 一个面向 Android 1.6+ 设备的 Bilibili 客户端，致力于还原 2013 年前后的经典界面与交互体验。
 让那些被遗忘在抽屉里的老设备重新获得观看 Bilibili 视频的能力。
 
